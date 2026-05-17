@@ -32,6 +32,7 @@ model Reporte {
   id_reportante   String
   id_reportado    String
   motivo          String
+  descripcion     String?
   estado          EstadoReporte @default(PENDIENTE)
   isActive        Boolean       @default(true)
 }
