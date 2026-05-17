@@ -34,5 +34,6 @@ model Reporte {
   motivo          String
   descripcion     String?
   estado          EstadoReporte @default(PENDIENTE)
+  fecha           DateTime      @default(now())
   isActive        Boolean       @default(true)
 }
