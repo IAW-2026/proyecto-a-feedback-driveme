@@ -1,8 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { EliminarButton } from "./EliminarButton";
 import { AprobarButton } from "./AprobarButton";
+import { ResolverButtons } from "./ResolverButtons";
 
 export default async function AdminPage() {
   const user = await currentUser();
@@ -24,8 +26,15 @@ export default async function AdminPage() {
   return (
     <main className="p-8 space-y-12">
       <section>
-        <h1 className="text-2xl font-bold">Panel de Moderación</h1>
-        <p className="text-gray-500 mt-2">Reportes pendientes de revisión</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Panel de Moderación</h1>
+            <p className="text-gray-500 mt-2">Reportes pendientes de revisión</p>
+          </div>
+          <Link href="/admin/usuarios" className="px-4 py-2 bg-gray-100 rounded text-sm hover:bg-gray-200 transition-colors">
+            Ver usuarios →
+          </Link>
+        </div>
 
         {reportes.length === 0 ? (
           <p className="mt-6 text-gray-400">No hay reportes pendientes.</p>
@@ -45,15 +54,7 @@ export default async function AdminPage() {
                 <p className="text-sm text-gray-500 mt-1">
                   Reportante: {r.id_reportante} · Reportado: {r.id_reportado}
                 </p>
-                {/* TODO: conectar al PATCH /api/reportes/[id]/resolver cuando el endpoint esté definido */}
-                <div className="mt-3 flex gap-2">
-                  <button disabled className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm opacity-50 cursor-not-allowed">
-                    Aprobar
-                  </button>
-                  <button disabled className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm opacity-50 cursor-not-allowed">
-                    Rechazar
-                  </button>
-                </div>
+                <ResolverButtons id_reporte={r.id_reporte} />
               </li>
             ))}
           </ul>

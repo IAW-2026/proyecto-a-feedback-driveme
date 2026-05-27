@@ -1,6 +1,10 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = await auth();
+  if (userId) redirect("/dashboard"); // Si esta logeado, redirige al dashboard
   return (
     <main className="flex flex-1 flex-col items-center justify-center p-8 text-center">
       <h1 className="text-4xl font-bold">DriveMe Feedback</h1>
