@@ -17,3 +17,17 @@ export async function eliminarComentario(id_calificacion: string) { // Funcion d
 
   revalidatePath("/admin");
 }
+
+export async function aprobarComentario(id_calificacion: string) {
+  const user = await currentUser();
+  if (!user || user.publicMetadata?.role !== "admin") {
+    throw new Error("No autorizado");
+  }
+
+  await prisma.calificacion.update({
+    where: { id_calificacion },
+    data: { isInappropriate: false },
+  });
+
+  revalidatePath("/admin");
+}

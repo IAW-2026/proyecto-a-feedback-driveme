@@ -10,6 +10,7 @@ export default async function DashboardPage() {
     where: {
       OR: [{ id_emisor: userId }, { id_receptor: userId }], //Calificaciones donde el usuario es emisor o receptor
       isActive: true,
+      isInappropriate: false,
     },
     orderBy: { fecha: "desc" },
   });

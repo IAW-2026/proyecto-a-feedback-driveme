@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { EliminarButton } from "./EliminarButton";
+import { AprobarButton } from "./AprobarButton";
 
 export default async function AdminPage() {
   const user = await currentUser();
@@ -78,7 +79,8 @@ export default async function AdminPage() {
                   </span>
                 </div>
                 <p className="mt-2 text-gray-800 italic">&ldquo;{c.comentario}&rdquo;</p>
-                <div className="mt-3">
+                <div className="mt-3 flex gap-2">
+                  <AprobarButton id_calificacion={c.id_calificacion} />
                   <EliminarButton id_calificacion={c.id_calificacion} />
                 </div>
               </li>

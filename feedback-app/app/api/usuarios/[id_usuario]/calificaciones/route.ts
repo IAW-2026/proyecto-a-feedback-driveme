@@ -16,6 +16,7 @@ export async function GET(
     where: {
       id_receptor: id_usuario,
       isActive: true,
+      isInappropriate: false,
     },
     select: {
       id_calificacion: true,
