@@ -8,7 +8,7 @@ export function AprobarButton({ id_calificacion }: { id_calificacion: string }) 
       onClick={() => aprobarComentario(id_calificacion)}
       className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors"
     >
-      Aprobar comentario
+      El comentario es válido
     </button>
   );
 }

@@ -7,15 +7,15 @@ export function ResolverButtons({ id_reporte }: { id_reporte: string }) {
     <div className="mt-3 flex gap-2">
       <button
         onClick={() => resolverReporte(id_reporte, "APROBADO")}
-        className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200 transition-colors"
+        className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
       >
-        Aprobar
+        Eliminar calificación
       </button>
       <button
         onClick={() => resolverReporte(id_reporte, "RECHAZADO")}
-        className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
+        className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-colors"
       >
-        Rechazar
+        Mantener calificación
       </button>
     </div>
   );
