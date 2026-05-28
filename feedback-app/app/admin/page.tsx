@@ -16,6 +16,7 @@ export default async function AdminPage() {
   const reportes = await prisma.reporte.findMany({
     where: { estado: "PENDIENTE", isActive: true },
     orderBy: { fecha: "asc" },
+    include: { calificacion: true },
   });
 
   const inapropiados = await prisma.calificacion.findMany({
@@ -41,19 +42,48 @@ export default async function AdminPage() {
         ) : (
           <ul className="mt-6 space-y-4">
             {reportes.map((r) => (
-              <li key={r.id_reporte} className="border rounded p-4">
-                <div className="flex justify-between">
-                  <span className="font-semibold">{r.motivo}</span>
-                  <span className="text-sm text-gray-400">
-                    {new Date(r.fecha).toLocaleDateString("es-AR")}
-                  </span>
+              <li key={r.id_reporte} className="border rounded p-4 space-y-3">
+                {/* Calificación original */}
+                <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                    Calificación denunciada
+                  </p>
+                  <div className="flex justify-between items-start">
+                    <span className="font-semibold text-gray-800">
+                      Puntaje: {r.calificacion.puntaje} / 5
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(r.calificacion.fecha).toLocaleDateString("es-AR")}
+                    </span>
+                  </div>
+                  {r.calificacion.comentario ? (
+                    <p className="mt-1 text-gray-700 italic">
+                      &ldquo;{r.calificacion.comentario}&rdquo;
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-gray-400 text-sm italic">Sin comentario</p>
+                  )}
+                  <p className="text-xs text-gray-400 mt-1">
+                    Emisor: {r.calificacion.id_emisor} · Receptor: {r.calificacion.id_receptor}
+                  </p>
                 </div>
-                {r.descripcion && (
-                  <p className="mt-1 text-gray-600 italic">&ldquo;{r.descripcion}&rdquo;</p>
-                )}
-                <p className="text-sm text-gray-500 mt-1">
-                  Reportante: {r.id_reportante} · Reportado: {r.id_reportado}
-                </p>
+
+                {/* Reporte */}
+                <div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold">{r.motivo}</span>
+                    <span className="text-sm text-gray-400">
+                      {new Date(r.fecha).toLocaleDateString("es-AR")}
+                    </span>
+                  </div>
+                  {r.descripcion && (
+                    <p className="mt-1 text-gray-600 italic">&ldquo;{r.descripcion}&rdquo;</p>
+                  )}
+                  <p className="text-sm text-gray-500 mt-1">
+                    Reportante: {r.id_reportante} · Reportado: {r.id_reportado}
+                  </p>
+                </div>
+
                 <ResolverButtons id_reporte={r.id_reporte} />
               </li>
             ))}
