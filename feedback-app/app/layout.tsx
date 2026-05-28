@@ -35,17 +35,25 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col"> 
         <ClerkProvider>
-          <header className="flex justify-between items-center p-4 border-b">
+          <header className="relative z-10 flex justify-between items-center px-8 py-4 bg-[#050810]/95 backdrop-blur-sm border-b border-white/5">
             <Show when="signed-in">
               <nav className="flex gap-6 text-sm font-medium">
-                <Link href="/dashboard">Mis calificaciones</Link>
-                {esAdmin && <Link href="/admin">Admin</Link>} 
+                <Link href="/dashboard" className="text-white/70 hover:text-white transition-colors">Mis calificaciones</Link>
+                {esAdmin && <Link href="/admin" className="text-white/70 hover:text-white transition-colors">Admin</Link>}
               </nav>
             </Show>
-            <div className="ml-auto flex gap-6 items-center">
+            <div className="ml-auto flex gap-4 items-center">
               <Show when="signed-out">
-                <SignInButton />
-                <SignUpButton />
+                <SignInButton>
+                  <button className="text-white/60 hover:text-white text-sm font-medium transition-colors cursor-pointer">
+                    Sign in
+                  </button>
+                </SignInButton>
+                <SignUpButton>
+                  <button className="border border-white/25 hover:border-white/60 text-white/70 hover:text-white text-sm font-medium px-4 py-1.5 rounded-full transition-all cursor-pointer">
+                    Sign up
+                  </button>
+                </SignUpButton>
               </Show>
               <Show when="signed-in">
                 <UserButton />
