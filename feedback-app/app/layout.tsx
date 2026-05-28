@@ -38,7 +38,7 @@ export default async function RootLayout({
           <header className="flex justify-between items-center p-4 border-b">
             <Show when="signed-in">
               <nav className="flex gap-6 text-sm font-medium">
-                <Link href="/dashboard">Dashboard</Link>
+                <Link href="/dashboard">Mis calificaciones</Link>
                 {esAdmin && <Link href="/admin">Admin</Link>} 
               </nav>
             </Show>

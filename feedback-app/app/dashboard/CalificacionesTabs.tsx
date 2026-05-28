@@ -41,8 +41,7 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
       {/* Fila superior: título a la izq, segmented control a la der */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-gray-500 mt-2">Tus calificaciones</p>
+          <h1 className="text-2xl font-bold">Mis calificaciones</h1>
         </div>
 
         {/* Segmented control */}
