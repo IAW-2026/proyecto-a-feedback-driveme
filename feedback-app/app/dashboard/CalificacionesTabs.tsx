@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ReportarButton } from "./ReportarButton";
+import { ResumenIA } from "./ResumenIA";
 
 type Calificacion = {
   id_calificacion: string;
@@ -69,6 +70,8 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
           ))}
         </div>
       </div>
+
+      <ResumenIA />
 
       {/* Lista de calificaciones */}
       {lista.length === 0 ? (

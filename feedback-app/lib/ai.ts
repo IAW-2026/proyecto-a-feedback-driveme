@@ -23,6 +23,40 @@ Comentario: "${comentario}"`,
   return respuesta.startsWith("SI");
 }
 
+export type AnalisisComentarios = {
+  tendenciasPositivas: string;
+  puntosAMejorar: string;
+  recurrenciaDeTemas: string;
+  resumenGeneral: string;
+};
+
+export async function analizarComentarios(comentarios: string[]): Promise<AnalisisComentarios> {
+  const lista = comentarios.map((c, i) => `${i + 1}. "${c}"`).join("\n");
+
+  const response = await getClient().chat.completions.create({
+    model: "llama-3.1-8b-instant",
+    messages: [
+      {
+        role: "user",
+        content: `Analizá los siguientes comentarios recibidos por un usuario de una app de transporte.
+Devolvé ÚNICAMENTE un objeto JSON con estos 4 campos:
+- "tendenciasPositivas": 1 oración que destaque lo mejor mencionado en los comentarios.
+- "puntosAMejorar": 1 oración con las críticas más comunes o áreas de oportunidad.
+- "recurrenciaDeTemas": 3 a 5 palabras clave separadas por comas que más se repiten.
+- "resumenGeneral": párrafo de 2 a 3 oraciones que sintetice el análisis completo de forma objetiva.
+
+Comentarios:
+${lista}`,
+      },
+    ],
+    response_format: { type: "json_object" },
+    max_tokens: 500,
+  });
+
+  const raw = response.choices[0].message.content ?? "{}";
+  return JSON.parse(raw) as AnalisisComentarios;
+}
+
 export async function generarResumen(comentarios: string[]): Promise<string> {
   const lista = comentarios.map((c, i) => `${i + 1}. "${c}"`).join("\n");
 

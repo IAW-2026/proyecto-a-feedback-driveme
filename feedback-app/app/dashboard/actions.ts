@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { analizarComentarios, type AnalisisComentarios } from "@/lib/ai";
 
 export async function crearReporte(id_calificacion: string, motivo: string, descripcion?: string) {
   const { userId } = await auth();
@@ -27,4 +28,27 @@ export async function crearReporte(id_calificacion: string, motivo: string, desc
   });
 
   revalidatePath("/dashboard");
+}
+
+export async function obtenerAnalisisIA(): Promise<AnalisisComentarios | null> {
+  const { userId } = await auth();
+  if (!userId) throw new Error("No autorizado");
+
+  const calificaciones = await prisma.calificacion.findMany({
+    where: {
+      id_receptor: userId,
+      isActive: true,
+      isInappropriate: false,
+      comentario: { not: null },
+    },
+    select: { comentario: true },
+  });
+
+  const comentarios = calificaciones
+    .map((c) => c.comentario)
+    .filter((c): c is string => c !== null && c.trim().length > 0);
+
+  if (comentarios.length === 0) return null;
+
+  return analizarComentarios(comentarios);
 }
