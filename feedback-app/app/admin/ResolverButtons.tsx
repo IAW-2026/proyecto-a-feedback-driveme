@@ -1,21 +1,27 @@
 "use client";
 
 import { resolverReporte } from "./actions";
+import { GalacticButton } from "@/components/star-wars/ui-elements";
+import { Trash2 } from "lucide-react";
 
 export function ResolverButtons({ id_reporte }: { id_reporte: string }) {
   return (
-    <div className="mt-3 flex gap-2">
-      <button
+    <div className="flex gap-2">
+      <GalacticButton
+        variant="dark"
+        size="sm"
         onClick={() => resolverReporte(id_reporte, "APROBADO")}
-        className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
       >
-        Eliminar calificación
-      </button>
+        <span className="flex items-center gap-2">
+          <Trash2 className="w-4 h-4" />
+          Eliminar Calificación
+        </span>
+      </GalacticButton>
       <button
         onClick={() => resolverReporte(id_reporte, "RECHAZADO")}
-        className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-colors"
+        className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted/20 transition-colors"
       >
-        Mantener calificación
+        Mantener
       </button>
     </div>
   );

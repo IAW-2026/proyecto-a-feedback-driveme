@@ -1,14 +1,20 @@
 "use client";
 
 import { eliminarComentario } from "./actions";
+import { GalacticButton } from "@/components/star-wars/ui-elements";
+import { Trash2 } from "lucide-react";
 
 export function EliminarButton({ id_calificacion }: { id_calificacion: string }) {
   return (
-    <button
-      onClick={() => eliminarComentario(id_calificacion)} // Llama a la función de eliminación al hacer clic
-      className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors"
+    <GalacticButton
+      variant="dark"
+      size="sm"
+      onClick={() => eliminarComentario(id_calificacion)}
     >
-      Eliminar comentario
-    </button>
+      <span className="flex items-center gap-2">
+        <Trash2 className="w-4 h-4" />
+        Eliminar
+      </span>
+    </GalacticButton>
   );
 }

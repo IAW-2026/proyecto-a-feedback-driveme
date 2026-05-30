@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Starfield } from "@/components/star-wars/starfield";
+import { Navbar } from "@/components/star-wars/navbar";
+import { HologramCard, GalacticButton, NavTabs, MessageBubble, StarRating } from "@/components/star-wars/ui-elements";
+import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { ReportarButton } from "./ReportarButton";
 import { ResumenIA } from "./ResumenIA";
 
@@ -22,6 +26,24 @@ type Props = {
   estadoReporteMap: Record<string, EstadoReporte>;
 };
 
+function formatFecha(fecha: Date): string {
+  const ahora = new Date();
+  const diff = ahora.getTime() - new Date(fecha).getTime();
+  const horas = Math.floor(diff / (1000 * 60 * 60));
+  if (horas < 1) return "Hace menos de 1h";
+  if (horas < 24) return `Hace ${horas}h`;
+  const dias = Math.floor(horas / 24);
+  if (dias < 7) return `Hace ${dias}d`;
+  return new Date(fecha).toLocaleDateString("es-AR");
+}
+
+function mapEstado(estado?: EstadoReporte): "pending" | "approved" | "rejected" | undefined {
+  if (!estado) return undefined;
+  if (estado === "PENDIENTE") return "pending";
+  if (estado === "APROBADO") return "approved";
+  return "rejected";
+}
+
 export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }: Props) {
   const [tab, setTab] = useState<Tab>("todas");
 
@@ -31,85 +53,112 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
   const lista =
     tab === "todas" ? calificaciones : tab === "recibidas" ? recibidas : enviadas;
 
-  const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: "todas",     label: "Todas",     count: calificaciones.length },
-    { key: "recibidas", label: "Recibidas", count: recibidas.length },
-    { key: "enviadas",  label: "Enviadas",  count: enviadas.length },
+  const tabs = [
+    { id: "todas", label: "Todas" },
+    { id: "recibidas", label: "Recibidas" },
+    { id: "enviadas", label: "Enviadas" },
   ];
 
-  return (
-    <div className="p-8">
-      {/* Fila superior: título a la izq, segmented control a la der */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Mis calificaciones</h1>
-        </div>
+  const promedioRecibidas = recibidas.length > 0
+    ? Math.round((recibidas.reduce((sum, c) => sum + c.puntaje, 0) / recibidas.length) * 10) / 10
+    : 0;
 
-        {/* Segmented control */}
-        <div className="flex items-center bg-[#1e1e20] rounded-full p-1 gap-0.5 w-full sm:w-auto">
-          {tabs.map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`
-                flex-1 sm:flex-none
-                flex items-center justify-center gap-1.5
-                px-4 py-1.5 rounded-full
-                text-sm font-medium
-                transition-colors duration-150
-                ${tab === key
-                  ? "bg-white text-black"
-                  : "bg-transparent text-gray-400 hover:text-white"}
-              `}
-            >
-              {label}
-              <span className={`text-xs ${tab === key ? "text-gray-500" : "text-gray-600"}`}>
-                ({count})
-              </span>
-            </button>
-          ))}
+  return (
+    <main className="relative min-h-screen overflow-hidden">
+      <Starfield />
+      <Navbar variant="light" />
+
+      <div className="relative z-10 pt-24 pb-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2 text-glow-green text-green-400">
+              Mis Calificaciones
+            </h1>
+            <p className="text-muted-foreground">
+              Revisá todas las calificaciones de tus viajes
+            </p>
+          </div>
+
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-4">
+            <NavTabs
+              tabs={tabs}
+              activeTab={tab}
+              onTabChange={(id) => setTab(id as Tab)}
+              variant="green"
+            />
+          </div>
+
+          {/* AI Summary */}
+          <ResumenIA />
+
+          {/* Reviews List */}
+          <div className="space-y-4 mt-6">
+            {lista.length === 0 ? (
+              <HologramCard variant="green" className="p-12 text-center">
+                <p className="text-muted-foreground">
+                  {tab === "recibidas"
+                    ? "No recibiste calificaciones todavía."
+                    : tab === "enviadas"
+                    ? "No enviaste calificaciones todavía."
+                    : "No tenés calificaciones todavía."}
+                </p>
+              </HologramCard>
+            ) : (
+              lista.map((c) => {
+                const type = c.id_emisor === userId ? "sent" : "received";
+                const estado = c.id_receptor === userId ? estadoReporteMap[c.id_calificacion] : undefined;
+                const statusMapped = mapEstado(estado);
+
+                return (
+                  <HologramCard key={c.id_calificacion} variant="green" className="p-4">
+                    <div className="flex flex-col gap-4">
+                      <MessageBubble
+                        name={type === "sent" ? "Yo" : c.id_emisor.slice(0, 12) + "..."}
+                        message={c.comentario || "(Sin comentario)"}
+                        timestamp={formatFecha(c.fecha)}
+                        rating={c.puntaje}
+                        type={type}
+                        variant="green"
+                        status={statusMapped}
+                      />
+
+                      {type === "received" && !estado && (
+                        <div className="flex justify-end">
+                          <ReportarButton
+                            id_calificacion={c.id_calificacion}
+                            estadoReporte={estadoReporteMap[c.id_calificacion]}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </HologramCard>
+                );
+              })
+            )}
+          </div>
+
+          {/* Stats footer */}
+          <div className="mt-8 grid grid-cols-3 gap-4">
+            <HologramCard variant="green" className="p-4 text-center">
+              <div className="text-2xl font-bold text-green-400">{recibidas.length}</div>
+              <div className="text-xs text-muted-foreground">Recibidas</div>
+            </HologramCard>
+            <HologramCard variant="green" className="p-4 text-center">
+              <div className="text-2xl font-bold text-green-400">{enviadas.length}</div>
+              <div className="text-xs text-muted-foreground">Enviadas</div>
+            </HologramCard>
+            <HologramCard variant="green" className="p-4 text-center">
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-2xl font-bold text-green-400">{promedioRecibidas}</span>
+                <StarRating rating={Math.round(promedioRecibidas)} size="sm" variant="green" />
+              </div>
+              <div className="text-xs text-muted-foreground">Promedio recibido</div>
+            </HologramCard>
+          </div>
         </div>
       </div>
-
-      <ResumenIA />
-
-      {/* Lista de calificaciones */}
-      {lista.length === 0 ? (
-        <p className="mt-6 text-gray-400">
-          {tab === "recibidas"
-            ? "No recibiste calificaciones todavía."
-            : tab === "enviadas"
-            ? "No enviaste calificaciones todavía."
-            : "No tenés calificaciones todavía."}
-        </p>
-      ) : (
-        <ul className="mt-6 space-y-4">
-          {lista.map((c) => (
-            <li key={c.id_calificacion} className="border rounded p-4">
-              <div className="flex justify-between">
-                <span className="font-semibold">Puntaje: {c.puntaje} / 5</span>
-                <span className="text-sm text-gray-400">
-                  {new Date(c.fecha).toLocaleDateString("es-AR")}
-                </span>
-              </div>
-              <p className="text-sm mt-1">
-                {c.id_emisor === userId
-                  ? "Enviaste esta calificación"
-                  : "Recibiste esta calificación"}
-              </p>
-              {c.comentario && (
-                <p className="mt-2 text-gray-600 italic">&ldquo;{c.comentario}&rdquo;</p>
-              )}
-              {c.id_receptor === userId && (
-                <ReportarButton
-                  id_calificacion={c.id_calificacion}
-                  estadoReporte={estadoReporteMap[c.id_calificacion]}
-                />
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    </main>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { crearReporte } from "./actions";
+import { GalacticButton } from "@/components/star-wars/ui-elements";
+import { Flag } from "lucide-react";
 
 const MOTIVOS = [
   { value: "COMENTARIO_INAPROPIADO", label: "Comentario inapropiado" },
@@ -24,18 +26,30 @@ export function ReportarButton({
   const [error, setError] = useState<string | null>(null);
 
   if (estadoReporte === "PENDIENTE") {
-    return <p className="mt-3 text-sm text-gray-400">Reporte en revisión</p>;
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400">
+        Reporte en revisión
+      </span>
+    );
   }
 
   if (estadoReporte === "APROBADO") {
-    return <p className="mt-3 text-sm text-green-600">Reporte aprobado</p>;
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+        Reporte aprobado
+      </span>
+    );
   }
 
   if (estadoReporte === "RECHAZADO") {
-    return <p className="mt-3 text-sm text-red-400">Reporte rechazado</p>;
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+        Reporte rechazado
+      </span>
+    );
   }
 
-  async function handleSubmit() { // Lógica para enviar el reporte
+  async function handleSubmit() {
     setEnviando(true);
     setError(null);
     try {
@@ -48,58 +62,48 @@ export function ReportarButton({
     }
   }
 
-  if (!abierto) { // Botón para abrir el formulario de reporte
+  if (!abierto) {
     return (
       <button
         onClick={() => setAbierto(true)}
-        className="mt-3 text-sm text-gray-400 hover:text-red-500 transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-destructive transition-colors"
       >
+        <Flag className="w-4 h-4" />
         Reportar
       </button>
     );
   }
 
-  return ( // Formulario para crear el reporte, con un select para elegir el motivo y un textarea para agregar una descripción opcional, además de botones para enviar o cancelar el reporte
-    <div className="mt-3 border border-gray-200 rounded p-3 space-y-2">
-      <div>
-        <label className="block text-xs text-gray-500 mb-1">Motivo</label>
-        <select
-          value={motivo}
-          onChange={(e) => setMotivo(e.target.value)}
-          className="w-full text-sm border rounded px-2 py-1"
-        >
-          {MOTIVOS.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block text-xs text-gray-500 mb-1">Descripción (opcional)</label>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          rows={2}
-          className="w-full text-sm border rounded px-2 py-1 resize-none"
-          placeholder="Contanos más sobre el problema..."
-        />
-      </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
-      <div className="flex gap-2">
-        <button
-          onClick={handleSubmit}
-          disabled={enviando}
-          className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition-colors disabled:opacity-50"
-        >
-          {enviando ? "Enviando..." : "Enviar reporte"}
-        </button>
+  return (
+    <div className="flex flex-col gap-3 w-full max-w-md animate-in slide-in-from-right-4 duration-200">
+      <select
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        className="bg-input border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 text-foreground"
+      >
+        {MOTIVOS.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </select>
+      <textarea
+        value={descripcion}
+        onChange={(e) => setDescripcion(e.target.value)}
+        placeholder="Descripción opcional..."
+        className="bg-input border border-border rounded-lg px-3 py-2 text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-green-500/50 text-foreground placeholder:text-muted-foreground"
+      />
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <div className="flex gap-2 justify-end">
         <button
           onClick={() => setAbierto(false)}
-          className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Cancelar
         </button>
+        <GalacticButton variant="green" size="sm" onClick={handleSubmit} disabled={enviando}>
+          {enviando ? "Enviando..." : "Enviar Reporte"}
+        </GalacticButton>
       </div>
     </div>
   );
