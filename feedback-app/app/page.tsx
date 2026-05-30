@@ -1,5 +1,5 @@
-"use client"
-
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 import { Starfield } from "@/components/star-wars/starfield"
 import { Navbar } from "@/components/star-wars/navbar"
 import { HologramCard, GalacticButton, MessageBubble } from "@/components/star-wars/ui-elements"
@@ -30,7 +30,10 @@ const sampleReviews = [
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { userId } = await auth()
+  if (userId) redirect("/dashboard")
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       <Starfield />
@@ -59,7 +62,7 @@ export default function LandingPage() {
             <Link href="/dashboard">
               <GalacticButton variant="light" size="lg">
                 <span className="flex items-center gap-2">
-                  Ir al Dashboard
+                  Ver mis calificaciones
                   <ChevronRight className="w-5 h-5" />
                 </span>
               </GalacticButton>
