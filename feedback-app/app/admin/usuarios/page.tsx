@@ -38,6 +38,7 @@ export default async function AdminUsuariosPage() {
   const ids = [...usuariosMap.keys()];
   const clerkNombres: Record<string, string> = {};
   const clerkBanned: Record<string, boolean> = {};
+  const clerkIsAdmin: Record<string, boolean> = {};
 
   if (ids.length > 0) {
     try {
@@ -50,6 +51,7 @@ export default async function AdminUsuariosPage() {
           u.id;
         clerkNombres[u.id] = nombre;
         clerkBanned[u.id] = u.banned ?? false;
+        clerkIsAdmin[u.id] = u.publicMetadata?.role === "admin";
       }
     } catch {
       // si Clerk falla, los usuarios se muestran con su ID
@@ -67,6 +69,7 @@ export default async function AdminUsuariosPage() {
       total: data.puntajes.length,
       calificaciones: data.calificaciones,
       banned: clerkBanned[id] ?? false,
+      isAdmin: clerkIsAdmin[id] ?? false,
     };
   });
 

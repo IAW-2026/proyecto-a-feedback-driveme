@@ -18,6 +18,7 @@ type Usuario = {
   total: number;
   calificaciones: Calificacion[];
   banned: boolean;
+  isAdmin: boolean;
 };
 
 export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
@@ -151,11 +152,13 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
                           <span className="text-xs text-muted-foreground">Total</span>
                         </div>
 
-                        <BanearButton
-                          id={u.id}
-                          banned={u.banned}
-                          onBanClick={(id, banned) => setModal({ id, banned })}
-                        />
+                        {!u.isAdmin && (
+                          <BanearButton
+                            id={u.id}
+                            banned={u.banned}
+                            onBanClick={(id, banned) => setModal({ id, banned })}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
