@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 
 export async function eliminarComentario(id_calificacion: string) { // Funcion donde solo un admin puede eliminar un comentario
   const user = await currentUser();
-  if (!user || user.publicMetadata?.role !== "admin") {
+  if (!user || user.publicMetadata?.role !== "moderator") {
     throw new Error("No autorizado");
   }
 
@@ -20,7 +20,7 @@ export async function eliminarComentario(id_calificacion: string) { // Funcion d
 
 export async function aprobarComentario(id_calificacion: string) {
   const user = await currentUser();
-  if (!user || user.publicMetadata?.role !== "admin") {
+  if (!user || user.publicMetadata?.role !== "moderator") {
     throw new Error("No autorizado");
   }
 
@@ -34,7 +34,7 @@ export async function aprobarComentario(id_calificacion: string) {
 
 export async function resolverReporte(id_reporte: string, decision: "APROBADO" | "RECHAZADO") {
   const user = await currentUser();
-  if (!user || user.publicMetadata?.role !== "admin") {
+  if (!user || user.publicMetadata?.role !== "moderator") {
     throw new Error("No autorizado");
   }
 

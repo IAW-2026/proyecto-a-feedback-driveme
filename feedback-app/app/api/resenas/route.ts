@@ -1,11 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { moderarComentario, generarResumen } from "@/lib/ai";
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await currentUser();
+  if (!user) {
     return Response.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const role = user.publicMetadata?.role;
+  if (role !== "rider" && role !== "driver") {
+    return Response.json({ error: "No autorizado" }, { status: 403 });
   }
 
   const body = await request.json();

@@ -14,7 +14,7 @@ export function Navbar({ variant = "light" }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { isSignedIn } = useAuth()
   const { user } = useUser()
-  const isAdmin = user?.publicMetadata?.role === "admin"
+  const isAdmin = user?.publicMetadata?.role === "moderator"
   const isLight = variant === "light"
 
   return (

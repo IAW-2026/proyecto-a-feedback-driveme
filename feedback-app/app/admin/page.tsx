@@ -14,7 +14,7 @@ import { AlertTriangle, Eye, Check, Users, Shield, Skull } from "lucide-react";
 export default async function AdminPage() {
   const user = await currentUser();
 
-  if (!user || user.publicMetadata?.role !== "admin") {
+  if (!user || user.publicMetadata?.role !== "moderator") {
     redirect("/");
   }
 
