@@ -3,18 +3,37 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { CalificacionesTabs } from "./CalificacionesTabs";
 
-export default async function DashboardPage() {
+const PAGE_SIZE = 10;
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  const calificaciones = await prisma.calificacion.findMany({
-    where: {
-      OR: [{ id_emisor: userId }, { id_receptor: userId }],
-      isActive: true,
-      isInappropriate: false,
-    },
-    orderBy: { fecha: "desc" },
-  });
+  const { page: pageParam = "1" } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam, 10));
+
+  const where = {
+    OR: [{ id_emisor: userId }, { id_receptor: userId }],
+    isActive: true,
+    isInappropriate: false,
+  };
+
+  const [calificaciones, total] = await Promise.all([
+    prisma.calificacion.findMany({
+      where,
+      orderBy: { fecha: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.calificacion.count({ where }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
 
   const idsRecibidas = calificaciones
     .filter((c) => c.id_receptor === userId)
@@ -35,6 +54,8 @@ export default async function DashboardPage() {
         calificaciones={calificaciones}
         userId={userId}
         estadoReporteMap={estadoReporteMap}
+        totalPages={totalPages}
+        currentPage={currentPage}
       />
     </main>
   );

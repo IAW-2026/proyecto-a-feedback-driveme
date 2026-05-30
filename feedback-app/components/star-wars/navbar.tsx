@@ -27,12 +27,12 @@ export function Navbar({ variant = "light" }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
+          <div className="flex items-center gap-3">
             <div className={cn(
-              "p-2 rounded-lg transition-all duration-300 group-hover:scale-110",
+              "p-2 rounded-lg",
               isLight
-                ? "bg-primary/20 group-hover:bg-primary/30 jedi-glow"
-                : "bg-destructive/20 group-hover:bg-destructive/30 sith-glow"
+                ? "bg-primary/20 jedi-glow"
+                : "bg-destructive/20 sith-glow"
             )}>
               <Rocket className={cn(
                 "w-6 h-6",
@@ -50,7 +50,7 @@ export function Navbar({ variant = "light" }: NavbarProps) {
                 Galactic Transport
               </span>
             </div>
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">

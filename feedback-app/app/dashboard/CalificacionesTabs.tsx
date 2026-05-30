@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Starfield } from "@/components/star-wars/starfield";
 import { Navbar } from "@/components/star-wars/navbar";
 import { HologramCard, NavTabs, MessageBubble, StarRating } from "@/components/star-wars/ui-elements";
 import { ReportarButton } from "./ReportarButton";
 import { ResumenIA } from "./ResumenIA";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Calificacion = {
   id_calificacion: string;
@@ -23,6 +26,8 @@ type Props = {
   calificaciones: Calificacion[];
   userId: string;
   estadoReporteMap: Record<string, EstadoReporte>;
+  totalPages: number;
+  currentPage: number;
 };
 
 function formatFecha(fecha: Date): string {
@@ -43,8 +48,15 @@ function mapEstado(estado?: EstadoReporte): "pending" | "approved" | "rejected" 
   return "rejected";
 }
 
-export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }: Props) {
+export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap, totalPages, currentPage }: Props) {
   const [tab, setTab] = useState<Tab>("todas");
+  const searchParams = useSearchParams();
+
+  function pageUrl(page: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    return `/dashboard?${params.toString()}`;
+  }
 
   const recibidas = calificaciones.filter((c) => c.id_receptor === userId);
   const enviadas = calificaciones.filter((c) => c.id_emisor === userId);
@@ -144,6 +156,49 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
               })
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <Link
+                href={pageUrl(currentPage - 1)}
+                aria-disabled={currentPage === 1}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === 1
+                    ? "border-primary/10 text-muted-foreground/30 pointer-events-none"
+                    : "border-primary/30 text-primary hover:bg-primary/10"
+                }`}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Link>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Link
+                  key={p}
+                  href={pageUrl(p)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
+                    p === currentPage
+                      ? "bg-primary/30 text-primary border-primary/50"
+                      : "border-primary/20 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  }`}
+                >
+                  {p}
+                </Link>
+              ))}
+
+              <Link
+                href={pageUrl(currentPage + 1)}
+                aria-disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === totalPages
+                    ? "border-primary/10 text-muted-foreground/30 pointer-events-none"
+                    : "border-primary/30 text-primary hover:bg-primary/10"
+                }`}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+            </div>
+          )}
 
         </div>
       </div>

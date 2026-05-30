@@ -9,25 +9,51 @@ import { Navbar } from "@/components/star-wars/navbar";
 import { HologramCard } from "@/components/star-wars/ui-elements";
 import { StarRating } from "@/components/star-wars/ui-elements";
 import { SpaceshipAvatar } from "@/components/star-wars/ui-elements";
-import { AlertTriangle, Eye, Check, Users, Shield, Skull } from "lucide-react";
+import { AlertTriangle, Eye, Check, Users, Shield, Skull, ChevronLeft, ChevronRight } from "lucide-react";
 
-export default async function AdminPage() {
+const PAGE_SIZE = 5;
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pReportes?: string; pInapropiados?: string }>;
+}) {
   const user = await currentUser();
 
   if (!user || user.publicMetadata?.role !== "moderator") {
     redirect("/");
   }
 
-  const reportes = await prisma.reporte.findMany({
-    where: { estado: "PENDIENTE", isActive: true },
-    orderBy: { fecha: "asc" },
-    include: { calificacion: true },
-  });
+  const { pReportes = "1", pInapropiados = "1" } = await searchParams;
+  const pageReportes = Math.max(1, parseInt(pReportes, 10));
+  const pageInapropiados = Math.max(1, parseInt(pInapropiados, 10));
 
-  const inapropiados = await prisma.calificacion.findMany({
-    where: { isInappropriate: true, isActive: true },
-    orderBy: { fecha: "asc" },
-  });
+  const [reportes, totalReportes, inapropiados, totalInapropiados] = await Promise.all([
+    prisma.reporte.findMany({
+      where: { estado: "PENDIENTE", isActive: true },
+      orderBy: { fecha: "asc" },
+      include: { calificacion: true },
+      skip: (pageReportes - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.reporte.count({ where: { estado: "PENDIENTE", isActive: true } }),
+    prisma.calificacion.findMany({
+      where: { isInappropriate: true, isActive: true },
+      orderBy: { fecha: "asc" },
+      skip: (pageInapropiados - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.calificacion.count({ where: { isInappropriate: true, isActive: true } }),
+  ]);
+
+  const totalPagesReportes = Math.max(1, Math.ceil(totalReportes / PAGE_SIZE));
+  const totalPagesInapropiados = Math.max(1, Math.ceil(totalInapropiados / PAGE_SIZE));
+
+  function paginationUrl(section: "reportes" | "inapropiados", page: number) {
+    const pR = section === "reportes" ? page : pageReportes;
+    const pI = section === "inapropiados" ? page : pageInapropiados;
+    return `/admin?pReportes=${pR}&pInapropiados=${pI}`;
+  }
 
   return (
     <main className="dark-side min-h-screen">
@@ -75,12 +101,12 @@ export default async function AdminPage() {
           <div className="grid grid-cols-2 gap-4 mb-8">
             <HologramCard variant="dark" className="p-4 text-center">
               <AlertTriangle className="w-6 h-6 text-destructive mx-auto mb-2" />
-              <div className="text-2xl font-bold text-destructive">{reportes.length}</div>
+              <div className="text-2xl font-bold text-destructive">{totalReportes}</div>
               <div className="text-xs text-muted-foreground">Reportes Pendientes</div>
             </HologramCard>
             <HologramCard variant="dark" className="p-4 text-center">
               <Eye className="w-6 h-6 text-destructive mx-auto mb-2" />
-              <div className="text-2xl font-bold text-destructive">{inapropiados.length}</div>
+              <div className="text-2xl font-bold text-destructive">{totalInapropiados}</div>
               <div className="text-xs text-muted-foreground">Marcados por IA</div>
             </HologramCard>
           </div>
@@ -102,7 +128,6 @@ export default async function AdminPage() {
                 ) : (
                   reportes.map((r) => (
                     <HologramCard key={r.id_reporte} variant="dark" className="p-4">
-                      {/* Calificación original */}
                       <div className="mb-4 pb-4 border-b border-destructive/20">
                         <div className="flex items-start gap-3 mb-3">
                           <SpaceshipAvatar name={r.calificacion.id_emisor} variant="dark" size="sm" />
@@ -129,7 +154,6 @@ export default async function AdminPage() {
                         )}
                       </div>
 
-                      {/* Reporte */}
                       <div className="mb-4">
                         <div className="flex items-center gap-2 mb-2">
                           <Shield className="w-4 h-4 text-amber-500" />
@@ -152,6 +176,28 @@ export default async function AdminPage() {
                   ))
                 )}
               </div>
+
+              {totalPagesReportes > 1 && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <Link
+                    href={paginationUrl("reportes", pageReportes - 1)}
+                    aria-disabled={pageReportes === 1}
+                    className={`p-2 rounded-lg border transition-colors ${pageReportes === 1 ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Link>
+                  <span className="text-sm text-muted-foreground px-2">
+                    {pageReportes} / {totalPagesReportes}
+                  </span>
+                  <Link
+                    href={paginationUrl("reportes", pageReportes + 1)}
+                    aria-disabled={pageReportes === totalPagesReportes}
+                    className={`p-2 rounded-lg border transition-colors ${pageReportes === totalPagesReportes ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
             </section>
 
             {/* Section 2: AI Flagged Comments */}
@@ -192,7 +238,6 @@ export default async function AdminPage() {
                         )}
                       </div>
 
-                      {/* AI reason */}
                       <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-destructive/10 rounded-lg border border-destructive/30">
                         <Eye className="w-4 h-4 text-destructive" />
                         <span className="text-xs text-destructive">Marcado automáticamente por IA como inapropiado</span>
@@ -206,6 +251,28 @@ export default async function AdminPage() {
                   ))
                 )}
               </div>
+
+              {totalPagesInapropiados > 1 && (
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <Link
+                    href={paginationUrl("inapropiados", pageInapropiados - 1)}
+                    aria-disabled={pageInapropiados === 1}
+                    className={`p-2 rounded-lg border transition-colors ${pageInapropiados === 1 ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Link>
+                  <span className="text-sm text-muted-foreground px-2">
+                    {pageInapropiados} / {totalPagesInapropiados}
+                  </span>
+                  <Link
+                    href={paginationUrl("inapropiados", pageInapropiados + 1)}
+                    aria-disabled={pageInapropiados === totalPagesInapropiados}
+                    className={`p-2 rounded-lg border transition-colors ${pageInapropiados === totalPagesInapropiados ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
             </section>
           </div>
         </div>
