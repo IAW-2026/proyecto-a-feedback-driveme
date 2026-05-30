@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -16,6 +16,15 @@ export default async function AdminPage() {
 
   if (!user || user.publicMetadata?.role !== "admin") {
     redirect("/");
+  }
+
+  let usuariosBaneados = 0;
+  try {
+    const client = await clerkClient();
+    const response = await client.users.getUserList({ limit: 500 });
+    usuariosBaneados = response.data.filter((u: { banned: boolean }) => u.banned).length;
+  } catch {
+    // si Clerk falla, queda en 0
   }
 
   const reportes = await prisma.reporte.findMany({
@@ -90,7 +99,7 @@ export default async function AdminPage() {
             </HologramCard>
             <HologramCard variant="dark" className="p-4 text-center">
               <Swords className="w-6 h-6 text-amber-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-amber-500">—</div>
+              <div className="text-2xl font-bold text-amber-500">{usuariosBaneados}</div>
               <div className="text-xs text-muted-foreground">Usuarios Bloqueados</div>
             </HologramCard>
           </div>

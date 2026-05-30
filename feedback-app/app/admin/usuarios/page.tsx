@@ -37,6 +37,7 @@ export default async function AdminUsuariosPage() {
 
   const ids = [...usuariosMap.keys()];
   const clerkNombres: Record<string, string> = {};
+  const clerkBanned: Record<string, boolean> = {};
 
   if (ids.length > 0) {
     try {
@@ -48,6 +49,7 @@ export default async function AdminUsuariosPage() {
           `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() ||
           u.id;
         clerkNombres[u.id] = nombre;
+        clerkBanned[u.id] = u.banned ?? false;
       }
     } catch {
       // si Clerk falla, los usuarios se muestran con su ID
@@ -64,6 +66,7 @@ export default async function AdminUsuariosPage() {
       promedio: Math.round(promedio * 10) / 10,
       total: data.puntajes.length,
       calificaciones: data.calificaciones,
+      banned: clerkBanned[id] ?? false,
     };
   });
 

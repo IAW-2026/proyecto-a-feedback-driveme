@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HologramCard } from "@/components/star-wars/ui-elements";
 import { StarRating } from "@/components/star-wars/ui-elements";
 import { SpaceshipAvatar } from "@/components/star-wars/ui-elements";
 import { Navbar } from "@/components/star-wars/navbar";
-import { Users, Search, ArrowLeft, MessageSquare, Star } from "lucide-react";
+import { Users, Search, ArrowLeft, MessageSquare, Star, AlertTriangle } from "lucide-react";
+import { BanearButton } from "./BanearButton";
 
 type Calificacion = { puntaje: number; comentario: string | null; fecha: string };
 type Usuario = {
@@ -15,17 +17,33 @@ type Usuario = {
   promedio: number;
   total: number;
   calificaciones: Calificacion[];
+  banned: boolean;
 };
 
 export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
   const [query, setQuery] = useState("");
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [modal, setModal] = useState<{ id: string; banned: boolean } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const filtrados = usuarios.filter(
     (u) =>
       u.nombre.toLowerCase().includes(query.toLowerCase()) ||
       u.id.toLowerCase().includes(query.toLowerCase())
   );
+
+  async function confirmarBan() {
+    if (!modal) return;
+    setLoading(true);
+    try {
+      await fetch(`/api/admin/usuarios/${modal.id}/${modal.banned ? "desbanear" : "banear"}`, { method: "POST" });
+      router.refresh();
+    } finally {
+      setLoading(false);
+      setModal(null);
+    }
+  }
 
   return (
     <main className="dark-side min-h-screen">
@@ -108,10 +126,15 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
                               {u.id.slice(0, 12)}...
                             </span>
                           )}
+                          {u.banned && (
+                            <span className="text-xs font-medium text-red-400 bg-red-500/20 border border-red-500/30 px-2 py-0.5 rounded">
+                              Baneado
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-4">
                         <div className="text-center">
                           <div className="flex items-center gap-1 justify-center">
                             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -127,6 +150,12 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
                           </div>
                           <span className="text-xs text-muted-foreground">Total</span>
                         </div>
+
+                        <BanearButton
+                          id={u.id}
+                          banned={u.banned}
+                          onBanClick={(id, banned) => setModal({ id, banned })}
+                        />
                       </div>
                     </div>
                   </div>
@@ -175,6 +204,52 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
           </div>
         </div>
       </div>
+
+      {/* Confirmation modal — rendered outside all cards to avoid stacking context issues */}
+      {modal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/75"
+          style={{ zIndex: 99999 }}
+          onClick={() => setModal(null)}
+        >
+          <div
+            className="w-full max-w-sm mx-4 rounded-xl border border-destructive/40 bg-[#1a0808] p-6 shadow-2xl shadow-destructive/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+              <h2 className="text-base font-semibold text-foreground">
+                {modal.banned ? "¿Desbanear usuario?" : "¿Banear usuario?"}
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6">
+              {modal.banned
+                ? "El usuario podrá volver a iniciar sesión en la aplicación."
+                : "El usuario no podrá iniciar sesión hasta que sea desbaneado."}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setModal(null)}
+                disabled={loading}
+                className="px-4 py-2 text-sm rounded-lg border border-destructive/20 text-muted-foreground hover:text-foreground hover:bg-destructive/10 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarBan}
+                disabled={loading}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                  modal.banned
+                    ? "bg-green-500/20 text-green-400 border border-green-500/40 hover:bg-green-500/30"
+                    : "bg-destructive/30 text-destructive border border-destructive/50 hover:bg-destructive/40"
+                }`}
+              >
+                {loading ? "..." : modal.banned ? "Desbanear" : "Banear"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
