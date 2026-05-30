@@ -88,7 +88,7 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
               variant="green"
             />
             <HologramCard variant="green" className="p-4 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Promedio puntaje</div>
+              <div className="text-sm text-muted-foreground mb-1">Promedio puntaje</div>
               <div className="flex items-center justify-center gap-1">
                 <span className="text-2xl font-bold text-green-400">{promedioRecibidas}</span>
                 <StarRating rating={Math.round(promedioRecibidas)} size="sm" variant="green" />

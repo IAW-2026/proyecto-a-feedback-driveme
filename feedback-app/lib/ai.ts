@@ -38,7 +38,8 @@ export async function analizarComentarios(comentarios: string[]): Promise<Analis
     messages: [
       {
         role: "user",
-        content: `Analizá los siguientes comentarios recibidos por un usuario de una app de transporte.
+        content: `Analizá los siguientes comentarios que otros usuarios dejaron sobre UNA SOLA persona en una app de transporte. Todos los comentarios se refieren a la misma persona. Redactá el análisis en singular, hablando siempre de "esta persona" o "el usuario".
+Respondé siempre en español correcto, sin errores ortográficos ni tipográficos.
 Devolvé ÚNICAMENTE un objeto JSON con estos 4 campos:
 - "tendenciasPositivas": 1 oración que destaque lo mejor mencionado en los comentarios.
 - "puntosAMejorar": 1 oración con las críticas más comunes o áreas de oportunidad.
