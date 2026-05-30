@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { HologramCard } from "@/components/star-wars/ui-elements";
 import { StarRating } from "@/components/star-wars/ui-elements";
 import { SpaceshipAvatar } from "@/components/star-wars/ui-elements";
 import { Navbar } from "@/components/star-wars/navbar";
-import { Users, Search, ArrowLeft, MessageSquare, Star, AlertTriangle } from "lucide-react";
+import { Users, Search, ArrowLeft, MessageSquare, Star, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { BanearButton } from "./BanearButton";
 
 type Calificacion = { puntaje: number; comentario: string | null; fecha: string };
@@ -21,18 +21,34 @@ type Usuario = {
   isAdmin: boolean;
 };
 
-export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
-  const [query, setQuery] = useState("");
+interface Props {
+  usuarios: Usuario[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  query: string;
+}
+
+export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query }: Props) {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [modal, setModal] = useState<{ id: string; banned: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState(query);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const filtrados = usuarios.filter(
-    (u) =>
-      u.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      u.id.toLowerCase().includes(query.toLowerCase())
-  );
+  function buildUrl(q: string, page: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (q) params.set("q", q);
+    else params.delete("q");
+    params.set("page", String(page));
+    return `/admin/usuarios?${params.toString()}`;
+  }
+
+  function handleSearch(e: { preventDefault(): void }) {
+    e.preventDefault();
+    router.push(buildUrl(inputValue, 1));
+  }
 
   async function confirmarBan() {
     if (!modal) return;
@@ -48,7 +64,6 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
 
   return (
     <main className="dark-side min-h-screen">
-      {/* Dark side background */}
       <div className="fixed inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#1a0808] to-[#0a0505]" />
       <div className="fixed inset-0 opacity-30 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -88,30 +103,37 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
           </div>
 
           {/* Search */}
-          <div className="mb-8">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar por nombre o ID..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-input border border-destructive/30 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive/50 transition-all"
-              />
+          <form onSubmit={handleSearch} className="mb-8">
+            <div className="relative max-w-md flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre o ID..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-input border border-destructive/30 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive/50 transition-all"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-3 rounded-lg bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-colors font-medium"
+              >
+                Buscar
+              </button>
             </div>
-          </div>
+          </form>
 
           {/* Users list */}
           <div className="space-y-4">
-            {filtrados.length === 0 ? (
+            {usuarios.length === 0 ? (
               <HologramCard variant="dark" className="p-12 text-center">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No se encontraron usuarios</p>
               </HologramCard>
             ) : (
-              filtrados.map((u) => (
+              usuarios.map((u) => (
                 <HologramCard key={u.id} variant="dark" className="overflow-hidden">
-                  {/* User header */}
                   <div
                     className="p-4 cursor-pointer hover:bg-destructive/5 transition-colors"
                     onClick={() => setExpandedUser(expandedUser === u.id ? null : u.id)}
@@ -163,7 +185,6 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
                     </div>
                   </div>
 
-                  {/* Expanded comments */}
                   {expandedUser === u.id && (
                     <div className="border-t border-destructive/20 p-4 bg-destructive/5 animate-in slide-in-from-top-2 duration-200">
                       <h4 className="text-sm font-medium mb-3 text-muted-foreground">
@@ -198,17 +219,61 @@ export function UsuarioFilter({ usuarios }: { usuarios: Usuario[] }) {
             )}
           </div>
 
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <Link
+                href={buildUrl(query, currentPage - 1)}
+                aria-disabled={currentPage === 1}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === 1
+                    ? "border-destructive/10 text-muted-foreground/30 pointer-events-none"
+                    : "border-destructive/30 text-destructive hover:bg-destructive/10"
+                }`}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Link>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Link
+                  key={p}
+                  href={buildUrl(query, p)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
+                    p === currentPage
+                      ? "bg-destructive/30 text-destructive border-destructive/50"
+                      : "border-destructive/20 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  }`}
+                >
+                  {p}
+                </Link>
+              ))}
+
+              <Link
+                href={buildUrl(query, currentPage + 1)}
+                aria-disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg border transition-colors ${
+                  currentPage === totalPages
+                    ? "border-destructive/10 text-muted-foreground/30 pointer-events-none"
+                    : "border-destructive/30 text-destructive hover:bg-destructive/10"
+                }`}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+            </div>
+          )}
+
           {/* Stats footer */}
-          <div className="mt-8 flex items-center justify-center gap-2 text-muted-foreground">
+          <div className="mt-6 flex items-center justify-center gap-2 text-muted-foreground">
             <Users className="w-4 h-4" />
             <span className="text-sm">
-              Mostrando {filtrados.length} de {usuarios.length} usuarios
+              Mostrando {usuarios.length} de {total} usuarios
+              {totalPages > 1 && ` — página ${currentPage} de ${totalPages}`}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Confirmation modal — rendered outside all cards to avoid stacking context issues */}
+      {/* Confirmation modal */}
       {modal && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black/75"
