@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { Starfield } from "@/components/star-wars/starfield";
 import { Navbar } from "@/components/star-wars/navbar";
-import { HologramCard, GalacticButton, NavTabs, MessageBubble, StarRating } from "@/components/star-wars/ui-elements";
-import { Sparkles, TrendingUp, AlertTriangle, CheckCircle, XCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { HologramCard, NavTabs, MessageBubble, StarRating } from "@/components/star-wars/ui-elements";
 import { ReportarButton } from "./ReportarButton";
 import { ResumenIA } from "./ResumenIA";
 
@@ -54,9 +53,9 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
     tab === "todas" ? calificaciones : tab === "recibidas" ? recibidas : enviadas;
 
   const tabs = [
-    { id: "todas", label: "Todas" },
-    { id: "recibidas", label: "Recibidas" },
-    { id: "enviadas", label: "Enviadas" },
+    { id: "todas", label: `Todas (${calificaciones.length})` },
+    { id: "recibidas", label: `Recibidas (${recibidas.length})` },
+    { id: "enviadas", label: `Enviadas (${enviadas.length})` },
   ];
 
   const promedioRecibidas = recibidas.length > 0
@@ -88,6 +87,10 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
               onTabChange={(id) => setTab(id as Tab)}
               variant="green"
             />
+            <div className="flex items-center gap-2">
+              <StarRating rating={Math.round(promedioRecibidas)} size="sm" variant="green" />
+              <span className="text-green-400 font-bold text-sm">{promedioRecibidas} promedio</span>
+            </div>
           </div>
 
           {/* AI Summary */}
@@ -139,24 +142,6 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
             )}
           </div>
 
-          {/* Stats footer */}
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            <HologramCard variant="green" className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-400">{recibidas.length}</div>
-              <div className="text-xs text-muted-foreground">Recibidas</div>
-            </HologramCard>
-            <HologramCard variant="green" className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-400">{enviadas.length}</div>
-              <div className="text-xs text-muted-foreground">Enviadas</div>
-            </HologramCard>
-            <HologramCard variant="green" className="p-4 text-center">
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-2xl font-bold text-green-400">{promedioRecibidas}</span>
-                <StarRating rating={Math.round(promedioRecibidas)} size="sm" variant="green" />
-              </div>
-              <div className="text-xs text-muted-foreground">Promedio recibido</div>
-            </HologramCard>
-          </div>
         </div>
       </div>
     </main>
