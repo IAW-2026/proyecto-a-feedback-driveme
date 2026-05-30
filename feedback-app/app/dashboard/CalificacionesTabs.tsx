@@ -87,10 +87,13 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap }:
               onTabChange={(id) => setTab(id as Tab)}
               variant="green"
             />
-            <div className="flex items-center gap-2">
-              <StarRating rating={Math.round(promedioRecibidas)} size="sm" variant="green" />
-              <span className="text-green-400 font-bold text-sm">{promedioRecibidas} promedio</span>
-            </div>
+            <HologramCard variant="green" className="p-4 text-center">
+              <div className="text-xs text-muted-foreground mb-1">Promedio puntaje</div>
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-2xl font-bold text-green-400">{promedioRecibidas}</span>
+                <StarRating rating={Math.round(promedioRecibidas)} size="sm" variant="green" />
+              </div>
+            </HologramCard>
           </div>
 
           {/* AI Summary */}

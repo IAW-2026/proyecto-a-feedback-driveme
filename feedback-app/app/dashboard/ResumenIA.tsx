@@ -64,7 +64,7 @@ export function ResumenIA() {
           ) : (
             <>
               <Sparkles className="w-4 h-4" />
-              {visible ? "Ocultar resumen IA" : "Ver mi resumen IA"}
+              {visible ? "Ocultar resumen de comentarios" : "Ver mi resumen de comentarios"}
               {visible ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </>
           )}
@@ -87,7 +87,7 @@ export function ResumenIA() {
         <HologramCard variant="green" className="p-6 mt-4 animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-5 h-5 text-green-500" />
-            <h2 className="text-lg font-semibold">Análisis de IA</h2>
+            <h2 className="text-lg font-semibold">Análisis de comentarios</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">

@@ -76,10 +76,6 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="relative z-10 py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
-            <span className="text-muted-foreground">Potenciado por</span>{" "}
-            <span className="text-primary text-glow-yellow">Inteligencia Artificial</span>
-          </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
             <HologramCard variant="light" className="p-6">
@@ -195,7 +191,7 @@ export default function LandingPage() {
             <span className="font-bold text-glow-yellow">DRIVEME</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 DriveMe Feedback. Todos los derechos reservados.
+            © 2026 DriveMe Feedback. Todos los derechos reservados.
           </p>
         </div>
       </footer>
