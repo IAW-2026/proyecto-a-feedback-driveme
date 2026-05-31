@@ -235,7 +235,7 @@ export function GalacticButton({
         sizeClasses[size],
         variant === "light" && "bg-primary text-primary-foreground hover:bg-primary/80 jedi-glow hover:scale-105",
         variant === "dark" && "bg-destructive text-destructive-foreground hover:bg-destructive/80 sith-glow hover:scale-105",
-        variant === "green" && "bg-green-500 text-white hover:bg-green-500/80 jedi-glow-green hover:scale-105",
+        variant === "green" && "bg-green-700 text-white hover:bg-green-600 jedi-glow-green hover:scale-105",
         variant === "outline" && "bg-transparent border-2 border-primary text-primary hover:bg-primary/10",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
         className
@@ -273,7 +273,7 @@ export function NavTabs({ tabs, activeTab, onTabChange, variant = "light" }: Nav
               ? isLight
                 ? "bg-primary text-primary-foreground jedi-glow"
                 : isGreen
-                  ? "bg-green-500 text-white jedi-glow-green"
+                  ? "bg-green-700 text-white jedi-glow-green"
                   : "bg-destructive text-destructive-foreground sith-glow"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}

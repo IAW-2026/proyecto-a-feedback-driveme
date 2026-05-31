@@ -113,6 +113,8 @@ export function Navbar({ variant = "light" }: NavbarProps) {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileMenuOpen}
             className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
           >
             {mobileMenuOpen ? (
