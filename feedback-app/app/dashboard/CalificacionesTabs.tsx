@@ -2,13 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { Starfield } from "@/components/star-wars/starfield";
 import { Navbar } from "@/components/star-wars/navbar";
 import { HologramCard, NavTabs, MessageBubble, StarRating } from "@/components/star-wars/ui-elements";
 import { ReportarButton } from "./ReportarButton";
-import { ResumenIA } from "./ResumenIA";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const Starfield = dynamic(
+  () => import("@/components/star-wars/starfield").then((m) => ({ default: m.Starfield })),
+  { ssr: false }
+);
+
+const ResumenIA = dynamic(
+  () => import("./ResumenIA").then((m) => ({ default: m.ResumenIA })),
+  { ssr: false }
+);
 
 type Calificacion = {
   id_calificacion: string;
