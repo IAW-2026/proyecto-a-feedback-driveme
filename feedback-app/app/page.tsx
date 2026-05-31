@@ -85,7 +85,7 @@ export default async function LandingPage() {
               <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4 jedi-glow">
                 <Star className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Calificaciones en Tiempo Real</h3>
+              <h2 className="text-lg font-semibold mb-2">Calificaciones en Tiempo Real</h2>
               <p className="text-muted-foreground text-sm">
                 Recibí y enviá calificaciones instantáneamente después de cada viaje.
               </p>
@@ -95,7 +95,7 @@ export default async function LandingPage() {
               <div className="w-12 h-12 rounded-lg bg-accent/20 flex items-center justify-center mb-4 hologram-glow">
                 <Shield className="w-6 h-6 text-accent" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Moderación con IA</h3>
+              <h2 className="text-lg font-semibold mb-2">Moderación con IA</h2>
               <p className="text-muted-foreground text-sm">
                 Nuestra IA analiza comentarios automáticamente para mantener un ambiente seguro.
               </p>
@@ -105,7 +105,7 @@ export default async function LandingPage() {
               <div className="w-12 h-12 rounded-lg bg-chart-3/20 flex items-center justify-center mb-4">
                 <MessageSquare className="w-6 h-6 text-chart-3" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Análisis de Tendencias</h3>
+              <h2 className="text-lg font-semibold mb-2">Análisis de Tendencias</h2>
               <p className="text-muted-foreground text-sm">
                 Obtené resúmenes inteligentes de tus comentarios para mejorar continuamente.
               </p>
