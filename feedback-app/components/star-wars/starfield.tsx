@@ -40,6 +40,8 @@ export function Starfield() {
       })
     }
 
+    let animationId: number
+
     const animate = () => {
       ctx.fillStyle = "rgba(8, 12, 20, 0.2)"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -57,12 +59,14 @@ export function Starfield() {
         ctx.fill()
       })
 
-      requestAnimationFrame(animate)
+      animationId = requestAnimationFrame(animate)
     }
 
-    animate()
+    const startTimeout = setTimeout(animate, 200)
 
     return () => {
+      clearTimeout(startTimeout)
+      cancelAnimationFrame(animationId)
       window.removeEventListener("resize", resizeCanvas)
     }
   }, [])

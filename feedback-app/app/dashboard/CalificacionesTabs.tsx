@@ -11,7 +11,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Starfield = dynamic(
   () => import("@/components/star-wars/starfield").then((m) => ({ default: m.Starfield })),
-  { ssr: false }
+  { ssr: false, loading: () => null }
 );
 
 const ResumenIA = dynamic(

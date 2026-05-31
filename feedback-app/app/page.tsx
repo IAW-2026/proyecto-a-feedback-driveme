@@ -1,7 +1,12 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import { Starfield } from "@/components/star-wars/starfield"
+import dynamic from "next/dynamic"
 import { Navbar } from "@/components/star-wars/navbar"
+
+const Starfield = dynamic(
+  () => import("@/components/star-wars/starfield").then((m) => ({ default: m.Starfield })),
+  { ssr: false, loading: () => null }
+)
 import { HologramCard, GalacticButton, MessageBubble } from "@/components/star-wars/ui-elements"
 import { Rocket, Star, Shield, Users, MessageSquare, Zap, ChevronRight } from "lucide-react"
 import Link from "next/link"

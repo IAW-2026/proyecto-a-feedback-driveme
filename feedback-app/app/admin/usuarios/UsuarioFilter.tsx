@@ -63,7 +63,7 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
   }
 
   return (
-    <main className="dark-side min-h-screen">
+    <main className="dark-side min-h-screen bg-background">
       <div className="fixed inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#1a0808] to-[#0a0505]" />
       <div className="fixed inset-0 opacity-30 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -117,7 +117,7 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
               </div>
               <button
                 type="submit"
-                className="px-4 py-3 rounded-lg bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-colors font-medium"
+                className="px-4 py-3 rounded-lg bg-destructive/20 text-red-300 border border-destructive/30 hover:bg-destructive/30 transition-colors font-medium"
               >
                 Buscar
               </button>
@@ -143,7 +143,7 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
 
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
-                          <h3 className="font-semibold text-lg">{u.nombre}</h3>
+                          <h2 className="font-semibold text-lg">{u.nombre}</h2>
                           {u.nombre !== u.id && (
                             <span className="text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded">
                               {u.id.slice(0, 12)}...
@@ -187,9 +187,9 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
 
                   {expandedUser === u.id && (
                     <div className="border-t border-destructive/20 p-4 bg-destructive/5 animate-in slide-in-from-top-2 duration-200">
-                      <h4 className="text-sm font-medium mb-3 text-muted-foreground">
+                      <h3 className="text-sm font-medium mb-3 text-muted-foreground">
                         Últimas calificaciones recibidas
-                      </h4>
+                      </h3>
                       <div className="space-y-3">
                         {u.calificaciones.map((c, i) => (
                           <div
