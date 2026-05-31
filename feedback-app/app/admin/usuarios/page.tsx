@@ -3,18 +3,9 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { UsuarioFilter } from "./UsuarioFilter";
 
-const PAGE_SIZE = 10;
-
-export default async function AdminUsuariosPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
+export default async function AdminUsuariosPage() {
   const user = await currentUser();
   if (!user || user.publicMetadata?.role !== "moderator") redirect("/");
-
-  const { q = "", page: pageParam = "1" } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam, 10));
 
   const calificaciones = await prisma.calificacion.findMany({
     where: { isActive: true },
@@ -67,7 +58,7 @@ export default async function AdminUsuariosPage({
     }
   }
 
-  const todosLosUsuarios = ids.map((id) => {
+  const usuarios = ids.map((id) => {
     const data = usuariosMap.get(id)!;
     const promedio =
       data.puntajes.reduce((sum, p) => sum + p, 0) / data.puntajes.length;
@@ -82,25 +73,5 @@ export default async function AdminUsuariosPage({
     };
   });
 
-  const filtrados = q
-    ? todosLosUsuarios.filter(
-        (u) =>
-          u.nombre.toLowerCase().includes(q.toLowerCase()) ||
-          u.id.toLowerCase().includes(q.toLowerCase())
-      )
-    : todosLosUsuarios;
-
-  const totalPages = Math.max(1, Math.ceil(filtrados.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const usuarios = filtrados.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  return (
-    <UsuarioFilter
-      usuarios={usuarios}
-      total={filtrados.length}
-      totalPages={totalPages}
-      currentPage={currentPage}
-      query={q}
-    />
-  );
+  return <UsuarioFilter usuarios={usuarios} />;
 }

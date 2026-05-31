@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HologramCard } from "@/components/star-wars/ui-elements";
 import { StarRating } from "@/components/star-wars/ui-elements";
@@ -9,6 +9,8 @@ import { SpaceshipAvatar } from "@/components/star-wars/ui-elements";
 import { Navbar } from "@/components/star-wars/navbar";
 import { Users, Search, ArrowLeft, MessageSquare, Star, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { BanearButton } from "./BanearButton";
+
+const PAGE_SIZE = 10;
 
 type Calificacion = { puntaje: number; comentario: string | null; fecha: string };
 type Usuario = {
@@ -23,31 +25,31 @@ type Usuario = {
 
 interface Props {
   usuarios: Usuario[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  query: string;
 }
 
-export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query }: Props) {
+export function UsuarioFilter({ usuarios }: Props) {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [modal, setModal] = useState<{ id: string; banned: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [inputValue, setInputValue] = useState(query);
+  const [query, setQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  function buildUrl(q: string, page: number) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (q) params.set("q", q);
-    else params.delete("q");
-    params.set("page", String(page));
-    return `/admin/usuarios?${params.toString()}`;
-  }
+  const filtrados = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return usuarios;
+    return usuarios.filter(
+      (u) => u.nombre.toLowerCase().includes(q) || u.id.toLowerCase().includes(q)
+    );
+  }, [query, usuarios]);
 
-  function handleSearch(e: { preventDefault(): void }) {
-    e.preventDefault();
-    router.push(buildUrl(inputValue, 1));
+  const totalPages = Math.max(1, Math.ceil(filtrados.length / PAGE_SIZE));
+  const page = Math.min(currentPage, totalPages);
+  const usuariosPagina = filtrados.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    setCurrentPage(1);
   }
 
   async function confirmarBan() {
@@ -103,61 +105,55 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
           </div>
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="mb-8">
-            <div className="relative max-w-md flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre o ID..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-input border border-destructive/30 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive/50 transition-all"
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-4 py-3 rounded-lg bg-destructive/20 text-red-300 border border-destructive/30 hover:bg-destructive/30 transition-colors font-medium"
-              >
-                Buscar
-              </button>
+          <div className="mb-8">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre o ID..."
+                value={query}
+                onChange={(e) => handleQueryChange(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-input border border-destructive/30 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive/50 transition-all"
+              />
             </div>
-          </form>
+          </div>
 
           {/* Users list */}
           <div className="space-y-4">
-            {usuarios.length === 0 ? (
+            {usuariosPagina.length === 0 ? (
               <HologramCard variant="dark" className="p-12 text-center">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No se encontraron usuarios</p>
               </HologramCard>
             ) : (
-              usuarios.map((u) => (
+              usuariosPagina.map((u) => (
                 <HologramCard key={u.id} variant="dark" className="overflow-hidden">
                   <div
                     className="p-4 cursor-pointer hover:bg-destructive/5 transition-colors"
                     onClick={() => setExpandedUser(expandedUser === u.id ? null : u.id)}
                   >
-                    <div className="flex items-center gap-4">
-                      <SpaceshipAvatar name={u.nombre} variant="dark" size="lg" />
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <SpaceshipAvatar name={u.nombre} variant="dark" size="lg" />
 
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h2 className="font-semibold text-lg">{u.nombre}</h2>
-                          {u.nombre !== u.id && (
-                            <span className="text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded">
-                              {u.id.slice(0, 12)}...
-                            </span>
-                          )}
-                          {u.banned && (
-                            <span className="text-xs font-medium text-red-400 bg-red-500/20 border border-red-500/30 px-2 py-0.5 rounded">
-                              Baneado
-                            </span>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h2 className="font-semibold text-lg truncate">{u.nombre}</h2>
+                            {u.nombre !== u.id && (
+                              <span className="text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded shrink-0">
+                                {u.id.slice(0, 12)}...
+                              </span>
+                            )}
+                            {u.banned && (
+                              <span className="text-xs font-medium text-red-400 bg-red-500/20 border border-red-500/30 px-2 py-0.5 rounded shrink-0">
+                                Baneado
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 justify-between sm:justify-end">
                         <div className="text-center">
                           <div className="flex items-center gap-1 justify-center">
                             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -222,43 +218,43 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2">
-              <Link
-                href={buildUrl(query, currentPage - 1)}
-                aria-disabled={currentPage === 1}
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
                 className={`p-2 rounded-lg border transition-colors ${
-                  currentPage === 1
+                  page === 1
                     ? "border-destructive/10 text-muted-foreground/30 pointer-events-none"
                     : "border-destructive/30 text-destructive hover:bg-destructive/10"
                 }`}
               >
                 <ChevronLeft className="w-5 h-5" />
-              </Link>
+              </button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <Link
+                <button
                   key={p}
-                  href={buildUrl(query, p)}
+                  onClick={() => setCurrentPage(p)}
                   className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
-                    p === currentPage
+                    p === page
                       ? "bg-destructive/30 text-destructive border-destructive/50"
                       : "border-destructive/20 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   }`}
                 >
                   {p}
-                </Link>
+                </button>
               ))}
 
-              <Link
-                href={buildUrl(query, currentPage + 1)}
-                aria-disabled={currentPage === totalPages}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
                 className={`p-2 rounded-lg border transition-colors ${
-                  currentPage === totalPages
+                  page === totalPages
                     ? "border-destructive/10 text-muted-foreground/30 pointer-events-none"
                     : "border-destructive/30 text-destructive hover:bg-destructive/10"
                 }`}
               >
                 <ChevronRight className="w-5 h-5" />
-              </Link>
+              </button>
             </div>
           )}
 
@@ -266,8 +262,8 @@ export function UsuarioFilter({ usuarios, total, totalPages, currentPage, query 
           <div className="mt-6 flex items-center justify-center gap-2 text-muted-foreground">
             <Users className="w-4 h-4" />
             <span className="text-sm">
-              Mostrando {usuarios.length} de {total} usuarios
-              {totalPages > 1 && ` — página ${currentPage} de ${totalPages}`}
+              Mostrando {usuariosPagina.length} de {filtrados.length} usuarios
+              {totalPages > 1 && ` — página ${page} de ${totalPages}`}
             </span>
           </div>
         </div>
