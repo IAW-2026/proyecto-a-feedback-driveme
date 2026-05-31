@@ -56,7 +56,7 @@ export default async function AdminPage({
   }
 
   return (
-    <main className="dark-side min-h-screen">
+    <main className="dark-side min-h-screen bg-background">
       {/* Dark side background */}
       <div className="fixed inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#1a0808] to-[#0a0505]" />
       <div className="fixed inset-0 opacity-30 pointer-events-none">
@@ -239,8 +239,8 @@ export default async function AdminPage({
                       </div>
 
                       <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-destructive/10 rounded-lg border border-destructive/30">
-                        <Eye className="w-4 h-4 text-destructive" />
-                        <span className="text-xs text-destructive">Marcado automáticamente por IA como inapropiado</span>
+                        <Eye className="w-4 h-4 text-red-300" />
+                        <span className="text-xs text-red-300">Marcado automáticamente por IA como inapropiado</span>
                       </div>
 
                       <div className="flex gap-2">
