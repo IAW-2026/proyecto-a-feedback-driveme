@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HologramCard } from "@/components/star-wars/ui-elements";
@@ -34,6 +34,27 @@ export function UsuarioFilter({ usuarios }: Props) {
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
+  const didMount = useRef(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") ?? "";
+    const page = Math.max(1, parseInt(params.get("page") ?? "1", 10));
+    if (q) setQuery(q);
+    if (page > 1) setCurrentPage(page);
+  }, []);
+
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (currentPage > 1) params.set("page", String(currentPage));
+    const search = params.toString();
+    window.history.replaceState(null, "", search ? `${window.location.pathname}?${search}` : window.location.pathname);
+  }, [query, currentPage]);
 
   const filtrados = useMemo(() => {
     const q = query.trim().toLowerCase();
