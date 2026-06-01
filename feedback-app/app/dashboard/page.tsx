@@ -4,30 +4,50 @@ import { prisma } from "@/lib/prisma";
 import { CalificacionesTabs } from "./CalificacionesTabs";
 
 const PAGE_SIZE = 10;
+type Tab = "todas" | "recibidas" | "enviadas";
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string }>;
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  const { page: pageParam = "1" } = await searchParams;
+  const { tab: tabParam = "todas", page: pageParam = "1" } = await searchParams;
+  const activeTab: Tab = ["todas", "recibidas", "enviadas"].includes(tabParam)
+    ? (tabParam as Tab)
+    : "todas";
 
-  const where = {
-    OR: [{ id_emisor: userId }, { id_receptor: userId }],
-    isActive: true,
-    isInappropriate: false,
-  };
+  const whereBase = { isActive: true, isInappropriate: false };
+  const whereTab =
+    activeTab === "recibidas"
+      ? { id_receptor: userId, ...whereBase }
+      : activeTab === "enviadas"
+      ? { id_emisor: userId, ...whereBase }
+      : { OR: [{ id_emisor: userId }, { id_receptor: userId }], ...whereBase };
 
-  const total = await prisma.calificacion.count({ where });
+  const [totalTodas, totalRecibidas, totalEnviadas, avgResult] = await Promise.all([
+    prisma.calificacion.count({ where: { OR: [{ id_emisor: userId }, { id_receptor: userId }], ...whereBase } }),
+    prisma.calificacion.count({ where: { id_receptor: userId, ...whereBase } }),
+    prisma.calificacion.count({ where: { id_emisor: userId, ...whereBase } }),
+    prisma.calificacion.aggregate({
+      where: { id_receptor: userId, ...whereBase },
+      _avg: { puntaje: true },
+    }),
+  ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const promedioRecibidas = Math.round((avgResult._avg.puntaje ?? 0) * 10) / 10;
+
+  const totalForTab =
+    activeTab === "recibidas" ? totalRecibidas :
+    activeTab === "enviadas" ? totalEnviadas :
+    totalTodas;
+  const totalPages = Math.max(1, Math.ceil(totalForTab / PAGE_SIZE));
   const currentPage = Math.min(Math.max(1, parseInt(pageParam, 10)), totalPages);
 
   const calificaciones = await prisma.calificacion.findMany({
-    where,
+    where: whereTab,
     orderBy: { fecha: "desc" },
     skip: (currentPage - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
@@ -37,10 +57,12 @@ export default async function DashboardPage({
     .filter((c) => c.id_receptor === userId)
     .map((c) => c.id_calificacion);
 
-  const reportesExistentes = await prisma.reporte.findMany({
-    where: { id_reportante: userId, id_calificacion: { in: idsRecibidas } },
-    select: { id_calificacion: true, estado: true },
-  });
+  const reportesExistentes = idsRecibidas.length > 0
+    ? await prisma.reporte.findMany({
+        where: { id_reportante: userId, id_calificacion: { in: idsRecibidas } },
+        select: { id_calificacion: true, estado: true },
+      })
+    : [];
 
   const estadoReporteMap = Object.fromEntries(
     reportesExistentes.map((r) => [r.id_calificacion, r.estado])
@@ -54,6 +76,11 @@ export default async function DashboardPage({
         estadoReporteMap={estadoReporteMap}
         totalPages={totalPages}
         currentPage={currentPage}
+        activeTab={activeTab}
+        totalTodas={totalTodas}
+        totalRecibidas={totalRecibidas}
+        totalEnviadas={totalEnviadas}
+        promedioRecibidas={promedioRecibidas}
       />
     </main>
   );

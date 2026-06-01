@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/star-wars/navbar";
 import { HologramCard, NavTabs, MessageBubble, StarRating } from "@/components/star-wars/ui-elements";
 import { ReportarButton } from "./ReportarButton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 const Starfield = dynamic(
   () => import("@/components/star-wars/starfield").then((m) => ({ default: m.Starfield })),
@@ -37,6 +37,11 @@ type Props = {
   estadoReporteMap: Record<string, EstadoReporte>;
   totalPages: number;
   currentPage: number;
+  activeTab: Tab;
+  totalTodas: number;
+  totalRecibidas: number;
+  totalEnviadas: number;
+  promedioRecibidas: number;
 };
 
 function formatFecha(fecha: Date): string {
@@ -57,31 +62,37 @@ function mapEstado(estado?: EstadoReporte): "pending" | "approved" | "rejected" 
   return "rejected";
 }
 
-export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap, totalPages, currentPage }: Props) {
-  const [tab, setTab] = useState<Tab>("todas");
+export function CalificacionesTabs({
+  calificaciones,
+  userId,
+  estadoReporteMap,
+  totalPages,
+  currentPage,
+  activeTab,
+  totalTodas,
+  totalRecibidas,
+  totalEnviadas,
+  promedioRecibidas,
+}: Props) {
+  const router = useRouter();
   const searchParams = useSearchParams();
+
+  function tabUrl(tab: Tab) {
+    return `/dashboard?tab=${tab}&page=1`;
+  }
 
   function pageUrl(page: number) {
     const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", activeTab);
     params.set("page", String(page));
     return `/dashboard?${params.toString()}`;
   }
 
-  const recibidas = calificaciones.filter((c) => c.id_receptor === userId);
-  const enviadas = calificaciones.filter((c) => c.id_emisor === userId);
-
-  const lista =
-    tab === "todas" ? calificaciones : tab === "recibidas" ? recibidas : enviadas;
-
   const tabs = [
-    { id: "todas", label: `Todas (${calificaciones.length})` },
-    { id: "recibidas", label: `Recibidas (${recibidas.length})` },
-    { id: "enviadas", label: `Enviadas (${enviadas.length})` },
+    { id: "todas", label: `Todas (${totalTodas})` },
+    { id: "recibidas", label: `Recibidas (${totalRecibidas})` },
+    { id: "enviadas", label: `Enviadas (${totalEnviadas})` },
   ];
-
-  const promedioRecibidas = recibidas.length > 0
-    ? Math.round((recibidas.reduce((sum, c) => sum + c.puntaje, 0) / recibidas.length) * 10) / 10
-    : 0;
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -104,8 +115,8 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap, t
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-4">
             <NavTabs
               tabs={tabs}
-              activeTab={tab}
-              onTabChange={(id) => setTab(id as Tab)}
+              activeTab={activeTab}
+              onTabChange={(id) => router.push(tabUrl(id as Tab))}
               variant="green"
             />
             <HologramCard variant="green" className="p-4 text-center">
@@ -122,18 +133,18 @@ export function CalificacionesTabs({ calificaciones, userId, estadoReporteMap, t
 
           {/* Reviews List */}
           <div className="space-y-4 mt-6">
-            {lista.length === 0 ? (
+            {calificaciones.length === 0 ? (
               <HologramCard variant="green" className="p-12 text-center">
                 <p className="text-muted-foreground">
-                  {tab === "recibidas"
+                  {activeTab === "recibidas"
                     ? "No recibiste calificaciones todavía."
-                    : tab === "enviadas"
+                    : activeTab === "enviadas"
                     ? "No enviaste calificaciones todavía."
                     : "No tenés calificaciones todavía."}
                 </p>
               </HologramCard>
             ) : (
-              lista.map((c) => {
+              calificaciones.map((c) => {
                 const type = c.id_emisor === userId ? "sent" : "received";
                 const estado = c.id_receptor === userId ? estadoReporteMap[c.id_calificacion] : undefined;
                 const statusMapped = mapEstado(estado);
