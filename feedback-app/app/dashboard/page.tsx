@@ -14,7 +14,6 @@ export default async function DashboardPage({
   if (!userId) redirect("/");
 
   const { page: pageParam = "1" } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam, 10));
 
   const where = {
     OR: [{ id_emisor: userId }, { id_receptor: userId }],
@@ -22,18 +21,17 @@ export default async function DashboardPage({
     isInappropriate: false,
   };
 
-  const [calificaciones, total] = await Promise.all([
-    prisma.calificacion.findMany({
-      where,
-      orderBy: { fecha: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.calificacion.count({ where }),
-  ]);
+  const total = await prisma.calificacion.count({ where });
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
+  const currentPage = Math.min(Math.max(1, parseInt(pageParam, 10)), totalPages);
+
+  const calificaciones = await prisma.calificacion.findMany({
+    where,
+    orderBy: { fecha: "desc" },
+    skip: (currentPage - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+  });
 
   const idsRecibidas = calificaciones
     .filter((c) => c.id_receptor === userId)

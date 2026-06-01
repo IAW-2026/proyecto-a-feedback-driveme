@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -25,10 +25,19 @@ export default async function AdminPage({
   }
 
   const { pReportes = "1", pInapropiados = "1" } = await searchParams;
-  const pageReportes = Math.max(1, parseInt(pReportes, 10));
-  const pageInapropiados = Math.max(1, parseInt(pInapropiados, 10));
 
-  const [reportes, totalReportes, inapropiados, totalInapropiados] = await Promise.all([
+  const [totalReportes, totalInapropiados] = await Promise.all([
+    prisma.reporte.count({ where: { estado: "PENDIENTE", isActive: true } }),
+    prisma.calificacion.count({ where: { isInappropriate: true, isActive: true } }),
+  ]);
+
+  const totalPagesReportes = Math.max(1, Math.ceil(totalReportes / PAGE_SIZE));
+  const totalPagesInapropiados = Math.max(1, Math.ceil(totalInapropiados / PAGE_SIZE));
+
+  const pageReportes = Math.min(Math.max(1, parseInt(pReportes, 10)), totalPagesReportes);
+  const pageInapropiados = Math.min(Math.max(1, parseInt(pInapropiados, 10)), totalPagesInapropiados);
+
+  const [reportes, inapropiados] = await Promise.all([
     prisma.reporte.findMany({
       where: { estado: "PENDIENTE", isActive: true },
       orderBy: { fecha: "asc" },
@@ -36,18 +45,36 @@ export default async function AdminPage({
       skip: (pageReportes - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    prisma.reporte.count({ where: { estado: "PENDIENTE", isActive: true } }),
     prisma.calificacion.findMany({
       where: { isInappropriate: true, isActive: true },
       orderBy: { fecha: "asc" },
       skip: (pageInapropiados - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    prisma.calificacion.count({ where: { isInappropriate: true, isActive: true } }),
   ]);
 
-  const totalPagesReportes = Math.max(1, Math.ceil(totalReportes / PAGE_SIZE));
-  const totalPagesInapropiados = Math.max(1, Math.ceil(totalInapropiados / PAGE_SIZE));
+  const allIds = [...new Set([
+    ...reportes.flatMap((r) => [r.calificacion.id_emisor, r.calificacion.id_receptor, r.id_reportante]),
+    ...inapropiados.flatMap((c) => [c.id_emisor, c.id_receptor]),
+  ])];
+
+  const nombres: Record<string, string> = {};
+  if (allIds.length > 0) {
+    try {
+      const client = await clerkClient();
+      const response = await client.users.getUserList({ userId: allIds, limit: 100 });
+      for (const u of response.data) {
+        nombres[u.id] =
+          u.username ||
+          `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() ||
+          u.id;
+      }
+    } catch {
+      // si Clerk falla, se usa el ID como fallback
+    }
+  }
+
+  const nombre = (id: string) => nombres[id] ?? id;
 
   function paginationUrl(section: "reportes" | "inapropiados", page: number) {
     const pR = section === "reportes" ? page : pageReportes;
@@ -130,12 +157,12 @@ export default async function AdminPage({
                     <HologramCard key={r.id_reporte} variant="dark" className="p-4">
                       <div className="mb-4 pb-4 border-b border-destructive/20">
                         <div className="flex items-start gap-3 mb-3">
-                          <SpaceshipAvatar name={r.calificacion.id_emisor} variant="dark" size="sm" />
+                          <SpaceshipAvatar name={nombre(r.calificacion.id_emisor)} variant="dark" size="sm" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">{r.calificacion.id_emisor.slice(0, 10)}...</span>
+                              <span className="font-medium text-sm">{nombre(r.calificacion.id_emisor)}</span>
                               <span className="text-xs text-muted-foreground">→</span>
-                              <span className="text-sm text-muted-foreground">{r.calificacion.id_receptor.slice(0, 10)}...</span>
+                              <span className="text-sm text-muted-foreground">{nombre(r.calificacion.id_receptor)}</span>
                             </div>
                             <StarRating rating={r.calificacion.puntaje} variant="dark" size="sm" />
                           </div>
@@ -158,7 +185,7 @@ export default async function AdminPage({
                         <div className="flex items-center gap-2 mb-2">
                           <Shield className="w-4 h-4 text-amber-500" />
                           <span className="text-sm font-medium text-amber-500">
-                            Reporte de {r.id_reportante.slice(0, 10)}...
+                            Reporte de {nombre(r.id_reportante)}
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground mb-2">
@@ -218,12 +245,12 @@ export default async function AdminPage({
                     <HologramCard key={c.id_calificacion} variant="dark" className="p-4">
                       <div className="mb-4">
                         <div className="flex items-start gap-3 mb-3">
-                          <SpaceshipAvatar name={c.id_emisor} variant="dark" size="sm" />
+                          <SpaceshipAvatar name={nombre(c.id_emisor)} variant="dark" size="sm" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">{c.id_emisor.slice(0, 10)}...</span>
+                              <span className="font-medium text-sm">{nombre(c.id_emisor)}</span>
                               <span className="text-xs text-muted-foreground">→</span>
-                              <span className="text-sm text-muted-foreground">{c.id_receptor.slice(0, 10)}...</span>
+                              <span className="text-sm text-muted-foreground">{nombre(c.id_receptor)}</span>
                             </div>
                             <StarRating rating={c.puntaje} variant="dark" size="sm" />
                           </div>
