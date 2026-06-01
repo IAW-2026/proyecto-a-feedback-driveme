@@ -8,11 +8,11 @@
 
 ## Usuarios de prueba
 
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Administrador | admin+clerk_test@iaw.com | iawuser# |
-| Driver (conductor) | driver+clerk_test@iaw.com | iawuser# |
-| Rider (pasajero) | rider+clerk_test@iaw.com | iawuser# |
+| Rol                | Email                     | Contraseña |
+|--------------------|---------------------------|------------|
+| Administrador      | admin+clerk_test@iaw.com  | iawuser#   |
+| Driver (conductor) | driver+clerk_test@iaw.com | iawuser#   |
+| Rider (pasajero)   | rider+clerk_test@iaw.com  | iawuser#   |
 
 ---
 
