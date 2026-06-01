@@ -209,9 +209,10 @@ export default async function AdminPage({
                   <Link
                     href={paginationUrl("reportes", pageReportes - 1)}
                     aria-disabled={pageReportes === 1}
+                    aria-label="Página anterior de reportes"
                     className={`p-2 rounded-lg border transition-colors ${pageReportes === 1 ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                   </Link>
                   <span className="text-sm text-muted-foreground px-2">
                     {pageReportes} / {totalPagesReportes}
@@ -219,9 +220,10 @@ export default async function AdminPage({
                   <Link
                     href={paginationUrl("reportes", pageReportes + 1)}
                     aria-disabled={pageReportes === totalPagesReportes}
+                    aria-label="Página siguiente de reportes"
                     className={`p-2 rounded-lg border transition-colors ${pageReportes === totalPagesReportes ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
                   </Link>
                 </div>
               )}
@@ -284,9 +286,10 @@ export default async function AdminPage({
                   <Link
                     href={paginationUrl("inapropiados", pageInapropiados - 1)}
                     aria-disabled={pageInapropiados === 1}
+                    aria-label="Página anterior de comentarios marcados"
                     className={`p-2 rounded-lg border transition-colors ${pageInapropiados === 1 ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                   </Link>
                   <span className="text-sm text-muted-foreground px-2">
                     {pageInapropiados} / {totalPagesInapropiados}
@@ -294,9 +297,10 @@ export default async function AdminPage({
                   <Link
                     href={paginationUrl("inapropiados", pageInapropiados + 1)}
                     aria-disabled={pageInapropiados === totalPagesInapropiados}
+                    aria-label="Página siguiente de comentarios marcados"
                     className={`p-2 rounded-lg border transition-colors ${pageInapropiados === totalPagesInapropiados ? "border-destructive/10 text-muted-foreground/30 pointer-events-none" : "border-destructive/30 text-destructive hover:bg-destructive/10"}`}
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
                   </Link>
                 </div>
               )}
