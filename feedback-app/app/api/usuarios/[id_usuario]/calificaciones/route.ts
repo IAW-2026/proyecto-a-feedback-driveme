@@ -1,13 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id_usuario: string }> }
 ) {
-  const { userId } = await auth();
-  if (!userId) {
-    return Response.json({ error: "No autorizado" }, { status: 401 });
+  const apiKey = request.headers.get("x-api-key");
+  const keysValidas = [
+    process.env.DRIVER_SERVICE_SECRET,
+    process.env.RIDER_SERVICE_SECRET,
+  ];
+  if (!apiKey || !keysValidas.includes(apiKey)) {
+    return Response.json({ error: "No autorizado" }, { status: 403 });
   }
 
   const { id_usuario } = await params;

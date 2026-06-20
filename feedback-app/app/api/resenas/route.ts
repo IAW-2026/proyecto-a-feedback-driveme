@@ -20,7 +20,25 @@ export async function POST(request: Request) {
     return Response.json({ error: "Faltan campos obligatorios" }, { status: 400 });
   }
 
-  // TODO: verificar que el viaje finalizó (GET /api/viajes/{id_viaje}/estado en Driver App)
+  if (puntaje < 1 || puntaje > 5) {
+    return Response.json({ error: "El puntaje debe estar entre 1 y 5" }, { status: 400 });
+  }
+
+  try {
+    const driverRes = await fetch(
+      `${process.env.DRIVER_APP_URL}/api/viajes/${id_viaje}/estado`,
+      { headers: { "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! } }
+    );
+    if (!driverRes.ok) {
+      return Response.json({ error: "Viaje no encontrado" }, { status: 404 });
+    }
+    const viaje = await driverRes.json();
+    if (viaje.estado_actual !== "FINALIZADO") {
+      return Response.json({ error: "El viaje no ha finalizado aún" }, { status: 400 });
+    }
+  } catch {
+    return Response.json({ error: "No se pudo verificar el viaje" }, { status: 503 });
+  }
 
   const esInapropiado = comentario ? await moderarComentario(comentario) : false;
 
@@ -41,9 +59,10 @@ export async function POST(request: Request) {
     select: { puntaje: true, comentario: true, isInappropriate: true, id_calificacion: true },
   });
 
-  const promedio =
+  const promedioRaw =
     todasLasCalificaciones.reduce((sum, c) => sum + c.puntaje, 0) /
     todasLasCalificaciones.length;
+  const promedio = Math.round(promedioRaw * 10) / 10;
 
   // El comentario inapropiado recién creado se excluye del resumen
   const comentariosParaResumen = todasLasCalificaciones
@@ -55,9 +74,25 @@ export async function POST(request: Request) {
       ? await generarResumen(comentariosParaResumen)
       : null;
 
-  // TODO (integración futura): POST /api/conductor/reputacion o /api/pasajero/reputacion con { promedio }
-  // TODO (integración futura): enviar { resumen } cuando el endpoint esté definido en las otras apps
-  console.log("[reputación]", { id_receptor, promedio, resumen }); // Por ahora solo muestra por consola el resumen, pero en el futuro se enviará a la app correspondiente.
+  try {
+    if (role === "driver") {
+      // Conductor calificó al pasajero → actualizar reputación en Rider App
+      await fetch(`${process.env.RIDER_APP_URL}/api/pasajeros/${id_receptor}/reputacion`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! },
+        body: JSON.stringify({ puntaje: promedio, comentario_promedio: resumen }),
+      });
+    } else {
+      // Pasajero calificó al conductor → actualizar reputación en Driver App
+      await fetch(`${process.env.DRIVER_APP_URL}/api/conductores/${id_receptor}/reputacion`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! },
+        body: JSON.stringify({ puntaje: promedio, comentario_promedio: resumen }),
+      });
+    }
+  } catch {
+    // La calificación ya fue guardada — si falla la notificación de reputación no se revierte
+  }
 
   return Response.json(
     {

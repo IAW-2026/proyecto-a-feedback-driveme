@@ -43,7 +43,11 @@ next-env.d.ts
 
 /app/generated/prisma
 
+# APIs
+APIs.md
+
 # notas privadas
 plan-a-seguir.md
 preguntas.md
 actualizar-etapa1.md
+cosas-a-descubrir.md
