@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { Rocket, Menu, X, Shield, LayoutDashboard } from "lucide-react"
+import { Rocket, Menu, X, Shield } from "lucide-react"
 import { useState } from "react"
 import { useAuth, useUser, SignInButton, SignUpButton, SignOutButton, UserButton } from "@clerk/nextjs"
 
@@ -56,14 +56,6 @@ export function Navbar({ variant = "light" }: NavbarProps) {
           <div className="hidden md:flex items-center gap-4">
             {isSignedIn ? (
               <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-muted text-foreground"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
-                </Link>
-
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -130,14 +122,6 @@ export function Navbar({ variant = "light" }: NavbarProps) {
           <div className="md:hidden py-4 space-y-2 border-t border-border/50">
             {isSignedIn ? (
               <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <LayoutDashboard className="w-5 h-5" />
-                  Dashboard
-                </Link>
                 {isAdmin && (
                   <Link
                     href="/admin"

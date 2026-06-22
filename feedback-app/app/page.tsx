@@ -37,7 +37,7 @@ const sampleReviews = [
 
 export default async function LandingPage() {
   const { userId } = await auth()
-  if (userId) redirect("/dashboard")
+  if (userId) redirect("/admin")
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -64,7 +64,7 @@ export default async function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/dashboard">
+            <Link href="/admin">
               <GalacticButton variant="light" size="lg">
                 <span className="flex items-center gap-2">
                   Ver mis calificaciones
@@ -181,7 +181,7 @@ export default async function LandingPage() {
               el transporte urbano, un viaje a la vez.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/dashboard">
+              <Link href="/admin">
                 <GalacticButton variant="light" size="lg">
                   Acceder al Sistema
                 </GalacticButton>
