@@ -1,10 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return Response.json({ error: "No autorizado" }, { status: 401 });
+  const apiKey = request.headers.get("x-api-key")
+    ?? request.headers.get("authorization")?.replace("Bearer ", "");
+
+  const keysValidas = [process.env.DRIVER_SERVICE_SECRET, process.env.RIDER_SERVICE_SECRET];
+  if (!apiKey || !keysValidas.includes(apiKey)) {
+    return Response.json({ error: "No autorizado" }, { status: 403 });
   }
 
   const body = await request.json();

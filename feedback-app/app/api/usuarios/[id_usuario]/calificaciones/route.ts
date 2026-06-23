@@ -4,7 +4,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id_usuario: string }> }
 ) {
-  const apiKey = request.headers.get("x-api-key");
+  const apiKey = request.headers.get("x-api-key")
+    ?? request.headers.get("authorization")?.replace("Bearer ", "");
   const keysValidas = [
     process.env.DRIVER_SERVICE_SECRET,
     process.env.RIDER_SERVICE_SECRET,

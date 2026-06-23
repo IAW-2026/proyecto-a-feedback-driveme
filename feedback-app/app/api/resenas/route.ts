@@ -1,17 +1,18 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { moderarComentario, generarResumen } from "@/lib/ai";
 
 export async function POST(request: Request) {
-  const user = await currentUser();
-  if (!user) {
-    return Response.json({ error: "No autorizado" }, { status: 401 });
-  }
+  const apiKey = request.headers.get("x-api-key")
+    ?? request.headers.get("authorization")?.replace("Bearer ", "");
 
-  const role = user.publicMetadata?.role;
-  if (role !== "rider" && role !== "driver") {
+  const isDriver = apiKey === process.env.DRIVER_SERVICE_SECRET;
+  const isRider = apiKey === process.env.RIDER_SERVICE_SECRET;
+
+  if (!isDriver && !isRider) {
     return Response.json({ error: "No autorizado" }, { status: 403 });
   }
+
+  const role = isDriver ? "driver" : "rider";
 
   const body = await request.json();
   const { id_viaje, id_emisor, id_receptor, puntaje, comentario } = body;
