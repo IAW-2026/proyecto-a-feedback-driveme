@@ -4,8 +4,7 @@ export async function GET(request: Request) {
   const apiKey = request.headers.get("x-api-key")
     ?? request.headers.get("authorization")?.replace("Bearer ", "");
   const keysValidas = [
-    process.env.CONTROL_PLANE_SECRET,
-    process.env.ANALYTICS_DASHBOARD_SECRET,
+    process.env.FEEDBACK_SERVICE_SECRET,
   ];
   if (!apiKey || !keysValidas.includes(apiKey)) {
     return Response.json({ error: "No autorizado" }, { status: 403 });
