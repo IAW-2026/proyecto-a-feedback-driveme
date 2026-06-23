@@ -5,7 +5,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await currentUser();
-  if (!user || user.publicMetadata?.role !== "moderator") {
+  if (!user || user.publicMetadata?.role !== "admin") {
     return Response.json({ error: "No autorizado" }, { status: 403 });
   }
 
@@ -13,7 +13,7 @@ export async function POST(
   const client = await clerkClient();
 
   const target = await client.users.getUser(id);
-  if (target.publicMetadata?.role === "moderator") {
+  if (target.publicMetadata?.role === "admin") {
     return Response.json({ error: "No podés banear a otro moderador" }, { status: 403 });
   }
 

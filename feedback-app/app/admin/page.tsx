@@ -20,7 +20,7 @@ export default async function AdminPage({
 }) {
   const user = await currentUser();
 
-  if (!user || user.publicMetadata?.role !== "moderator") {
+  if (!user || user.publicMetadata?.role !== "admin") {
     redirect("/");
   }
 

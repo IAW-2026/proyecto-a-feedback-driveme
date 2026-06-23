@@ -5,7 +5,7 @@ import { UsuarioFilter } from "./UsuarioFilter";
 
 export default async function AdminUsuariosPage() {
   const user = await currentUser();
-  if (!user || user.publicMetadata?.role !== "moderator") redirect("/");
+  if (!user || user.publicMetadata?.role !== "admin") redirect("/");
 
   const calificaciones = await prisma.calificacion.findMany({
     where: { isActive: true },
@@ -51,7 +51,7 @@ export default async function AdminUsuariosPage() {
           u.id;
         clerkNombres[u.id] = nombre;
         clerkBanned[u.id] = u.banned ?? false;
-        clerkIsAdmin[u.id] = u.publicMetadata?.role === "moderator";
+        clerkIsAdmin[u.id] = u.publicMetadata?.role === "admin";
       }
     } catch {
       // si Clerk falla, los usuarios se muestran con su ID
