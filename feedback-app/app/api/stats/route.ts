@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   hace14Dias.setDate(hace14Dias.getDate() - 14);
   hace14Dias.setHours(0, 0, 0, 0);
 
-  const [totalCalificaciones, reportesPendientes, calificacionesHoy, todas, reportesAprobados, reportesRechazados] =
+  const [totalCalificaciones, reportesPendientes, calificacionesHoy, todas, reportesAprobados, reportesRechazados, topReceptor] =
     await Promise.all([
       prisma.calificacion.count({ where: { isActive: true } }),
       prisma.reporte.count({ where: { estado: "PENDIENTE", isActive: true } }),
@@ -29,6 +29,13 @@ export async function GET(request: Request) {
       }),
       prisma.reporte.count({ where: { estado: "APROBADO", isActive: true } }),
       prisma.reporte.count({ where: { estado: "RECHAZADO", isActive: true } }),
+      prisma.calificacion.groupBy({
+        by: ["id_receptor"],
+        where: { isActive: true },
+        _count: { id_receptor: true },
+        orderBy: { _count: { id_receptor: "desc" } },
+        take: 1,
+      }),
     ]);
 
   const promedioGeneral =
@@ -58,6 +65,10 @@ export async function GET(request: Request) {
   const textos = todas.map((c) => c.comentario).filter((c): c is string => c !== null && c.trim() !== "");
   const resumenComentarios = textos.length > 0 ? await generarResumenGlobal(textos) : null;
 
+  const usuarioMasCalificado = topReceptor.length > 0
+    ? { id_usuario: topReceptor[0].id_receptor, total_calificaciones: topReceptor[0]._count.id_receptor }
+    : null;
+
   return Response.json({
     total_calificaciones: totalCalificaciones,
     promedio_general: promedioGeneral,
@@ -69,5 +80,6 @@ export async function GET(request: Request) {
     reportes_rechazados: reportesRechazados,
     tasa_aprobacion: tasaAprobacion,
     resumen_comentarios: resumenComentarios,
+    usuario_mas_calificado: usuarioMasCalificado,
   });
 }
