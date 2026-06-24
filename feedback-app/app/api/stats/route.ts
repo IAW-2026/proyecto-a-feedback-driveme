@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { generarResumenGlobal } from "@/lib/ai";
 
 export async function GET(request: Request) {
   const apiKey = request.headers.get("x-api-key")
@@ -23,8 +24,8 @@ export async function GET(request: Request) {
         where: { isActive: true, fecha: { gte: hoy } },
       }),
       prisma.calificacion.findMany({
-        where: { isActive: true },
-        select: { puntaje: true, fecha: true },
+        where: { isActive: true, isInappropriate: false },
+        select: { puntaje: true, fecha: true, comentario: true },
       }),
       prisma.reporte.count({ where: { estado: "APROBADO", isActive: true } }),
       prisma.reporte.count({ where: { estado: "RECHAZADO", isActive: true } }),
@@ -54,6 +55,9 @@ export async function GET(request: Request) {
   const totalResueltos = reportesAprobados + reportesRechazados;
   const tasaAprobacion = totalResueltos > 0 ? Math.round((reportesAprobados / totalResueltos) * 100) / 100 : 0;
 
+  const textos = todas.map((c) => c.comentario).filter((c): c is string => c !== null && c.trim() !== "");
+  const resumenComentarios = textos.length > 0 ? await generarResumenGlobal(textos) : null;
+
   return Response.json({
     total_calificaciones: totalCalificaciones,
     promedio_general: promedioGeneral,
@@ -64,5 +68,6 @@ export async function GET(request: Request) {
     reportes_aprobados: reportesAprobados,
     reportes_rechazados: reportesRechazados,
     tasa_aprobacion: tasaAprobacion,
+    resumen_comentarios: resumenComentarios,
   });
 }

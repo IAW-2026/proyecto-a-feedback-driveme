@@ -78,3 +78,24 @@ Escribí un párrafo breve (2-3 oraciones) que resuma en general lo que dicen lo
 
   return response.choices[0].message.content?.trim() ?? "";
 }
+
+export async function generarResumenGlobal(comentarios: string[]): Promise<string> {
+  const lista = comentarios.map((c, i) => `${i + 1}. "${c}"`).join("\n");
+
+  const response = await getClient().chat.completions.create({
+    model: "llama-3.1-8b-instant",
+    messages: [
+      {
+        role: "user",
+        content: `Tenés los siguientes comentarios de usuarios de una app de transporte:
+
+${lista}
+
+Escribí un párrafo breve (2-3 oraciones) que resuma la experiencia general de los usuarios: qué valoran más y cuáles son las críticas más frecuentes. No menciones roles ni cargos específicos (como conductor, pasajero, chofer o cliente), hablá de "los usuarios" en términos generales. Usá un tono objetivo y neutral. Respondé solo el párrafo, sin título ni introducción.`,
+      },
+    ],
+    max_tokens: 200,
+  });
+
+  return response.choices[0].message.content?.trim() ?? "";
+}
