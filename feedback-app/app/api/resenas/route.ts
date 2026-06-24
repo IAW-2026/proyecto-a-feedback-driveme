@@ -5,7 +5,8 @@ export async function POST(request: Request) {
   const apiKey = request.headers.get("x-api-key")
     ?? request.headers.get("authorization")?.replace("Bearer ", "");
 
-  if (!apiKey || apiKey !== process.env.FEEDBACK_SERVICE_SECRET) {
+  const keysValidas = [process.env.DRIVER_SERVICE_SECRET, process.env.RIDER_SERVICE_SECRET];
+  if (!apiKey || !keysValidas.includes(apiKey)) {
     return Response.json({ error: "No autorizado" }, { status: 403 });
   }
 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   try {
     const driverRes = await fetch(
       `${process.env.DRIVER_APP_URL}/api/viajes/${id_viaje}/estado`,
-      { headers: { "x-api-key": process.env.DRIVER_SERVICE_SECRET! } }
+      { headers: { "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! } }
     );
     if (!driverRes.ok) {
       return Response.json({ error: "Viaje no encontrado" }, { status: 404 });
@@ -80,14 +81,14 @@ export async function POST(request: Request) {
       // Conductor calificó al pasajero → actualizar reputación en Rider App
       await fetch(`${process.env.RIDER_APP_URL}/api/pasajeros/${id_receptor}/reputacion`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "x-api-key": process.env.RIDER_SERVICE_SECRET! },
+        headers: { "Content-Type": "application/json", "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! },
         body: JSON.stringify({ puntaje: promedio, comentario_promedio: resumen }),
       });
     } else {
       // Pasajero calificó al conductor → actualizar reputación en Driver App
       await fetch(`${process.env.DRIVER_APP_URL}/api/conductores/${id_receptor}/reputacion`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "x-api-key": process.env.DRIVER_SERVICE_SECRET! },
+        headers: { "Content-Type": "application/json", "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! },
         body: JSON.stringify({ puntaje: promedio, comentario_promedio: resumen }),
       });
     }

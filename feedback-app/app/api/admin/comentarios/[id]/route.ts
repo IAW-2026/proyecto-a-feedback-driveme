@@ -6,7 +6,7 @@ export async function PATCH(
 ) {
   const apiKey = request.headers.get("x-api-key")
     ?? request.headers.get("authorization")?.replace("Bearer ", "");
-  if (!apiKey || apiKey !== process.env.FEEDBACK_SERVICE_SECRET) {
+  if (!apiKey || apiKey !== process.env.CONTROL_PLANE_SECRET) {
     return Response.json({ error: "No autorizado" }, { status: 403 });
   }
 
