@@ -56,14 +56,18 @@ export async function POST(request: Request) {
 
   // Calcular promedio y resumen para notificar a la app correspondiente
   const todasLasCalificaciones = await prisma.calificacion.findMany({
-    where: { id_receptor, isActive: true },
+    where: { id_receptor, isActive: true, isInappropriate: false },
     select: { puntaje: true, comentario: true, isInappropriate: true, id_calificacion: true },
   });
 
-  const promedioRaw =
-    todasLasCalificaciones.reduce((sum, c) => sum + c.puntaje, 0) /
-    todasLasCalificaciones.length;
-  const promedio = Math.round(promedioRaw * 10) / 10;
+  const promedio =
+    todasLasCalificaciones.length > 0
+      ? Math.round(
+          (todasLasCalificaciones.reduce((sum, c) => sum + c.puntaje, 0) /
+            todasLasCalificaciones.length) *
+            10
+        ) / 10
+      : 0;
 
   // El comentario inapropiado recién creado se excluye del resumen
   const comentariosParaResumen = todasLasCalificaciones

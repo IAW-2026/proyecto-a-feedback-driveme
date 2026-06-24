@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { generarResumen } from "@/lib/ai";
 
 export async function PATCH(
   request: Request,
@@ -42,10 +43,73 @@ export async function PATCH(
   });
 
   if (decision === "APROBADO") {
-    await prisma.calificacion.update({
+    const calificacion = await prisma.calificacion.update({
       where: { id_calificacion: reporte.id_calificacion },
       data: { isActive: false },
     });
+
+    try {
+      const driverRes = await fetch(
+        `${process.env.DRIVER_APP_URL}/api/viajes/${calificacion.id_viaje}/estado`,
+        { headers: { "x-api-key": process.env.FEEDBACK_SERVICE_SECRET! } }
+      );
+      if (driverRes.ok) {
+        const viaje = await driverRes.json();
+        const id_receptor = calificacion.id_receptor;
+        const role = viaje.id_conductor === id_receptor ? "driver" : "rider";
+
+        const calificaciones = await prisma.calificacion.findMany({
+          where: { id_receptor, isActive: true, isInappropriate: false },
+          select: { puntaje: true, comentario: true },
+        });
+
+        const promedio =
+          calificaciones.length > 0
+            ? Math.round(
+                (calificaciones.reduce((sum, c) => sum + c.puntaje, 0) /
+                  calificaciones.length) *
+                  10
+              ) / 10
+            : 0;
+
+        const comentariosParaResumen = calificaciones
+          .filter((c) => c.comentario)
+          .map((c) => c.comentario as string);
+
+        const resumen =
+          comentariosParaResumen.length > 0
+            ? await generarResumen(comentariosParaResumen)
+            : null;
+
+        if (role === "driver") {
+          await fetch(
+            `${process.env.RIDER_APP_URL}/api/pasajeros/${id_receptor}/reputacion`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": process.env.FEEDBACK_SERVICE_SECRET!,
+              },
+              body: JSON.stringify({ puntaje: promedio, comentario_promedio: resumen }),
+            }
+          );
+        } else {
+          await fetch(
+            `${process.env.DRIVER_APP_URL}/api/conductores/${id_receptor}/reputacion`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": process.env.FEEDBACK_SERVICE_SECRET!,
+              },
+              body: JSON.stringify({ puntaje: promedio, comentario_promedio: resumen }),
+            }
+          );
+        }
+      }
+    } catch {
+      // La calificación ya fue desactivada — si falla la notificación de reputación no se revierte
+    }
   }
 
   return Response.json({
