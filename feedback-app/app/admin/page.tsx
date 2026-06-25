@@ -65,8 +65,9 @@ export default async function AdminPage({
       const response = await client.users.getUserList({ userId: allIds, limit: 100 });
       for (const u of response.data) {
         nombres[u.id] =
-          u.username ||
           `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() ||
+          u.username ||
+          u.primaryEmailAddress?.emailAddress ||
           u.id;
       }
     } catch {

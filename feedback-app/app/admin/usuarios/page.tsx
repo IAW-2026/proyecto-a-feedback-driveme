@@ -46,8 +46,9 @@ export default async function AdminUsuariosPage() {
       const response = await client.users.getUserList({ userId: ids, limit: 100 });
       for (const u of response.data) {
         const nombre =
-          u.username ||
           `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() ||
+          u.username ||
+          u.primaryEmailAddress?.emailAddress ||
           u.id;
         clerkNombres[u.id] = nombre;
         clerkBanned[u.id] = u.banned ?? false;
