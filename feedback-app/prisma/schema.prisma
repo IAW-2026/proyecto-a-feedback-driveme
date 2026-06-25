@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EstadoReporte {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+model Calificacion {
+  id_calificacion String     @id @default(uuid())
+  id_viaje        String
+  id_emisor       String
+  id_receptor     String
+  puntaje         Int
+  comentario      String?
+  isInappropriate Boolean    @default(false)
+  fecha           DateTime   @default(now())
+  isActive        Boolean    @default(true)
+  reportes        Reporte[]
+}
+
+model Reporte {
+  id_reporte      String        @id @default(uuid())
+  id_calificacion String
+  calificacion    Calificacion  @relation(fields: [id_calificacion], references: [id_calificacion])
+  id_reportante   String
+  id_reportado    String
+  motivo          String
+  descripcion     String?
+  estado          EstadoReporte @default(PENDIENTE)
+  fecha           DateTime      @default(now())
+  isActive        Boolean       @default(true)
+}
