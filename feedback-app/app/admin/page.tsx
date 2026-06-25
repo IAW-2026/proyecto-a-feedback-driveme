@@ -21,7 +21,7 @@ export default async function AdminPage({
   const user = await currentUser();
 
   if (!user || user.publicMetadata?.role !== "admin") {
-    redirect("/");
+    redirect("/no-acceso");
   }
 
   const { pReportes = "1", pInapropiados = "1" } = await searchParams;

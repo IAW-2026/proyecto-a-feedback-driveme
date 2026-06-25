@@ -5,7 +5,7 @@ import { UsuarioFilter } from "./UsuarioFilter";
 
 export default async function AdminUsuariosPage() {
   const user = await currentUser();
-  if (!user || user.publicMetadata?.role !== "admin") redirect("/");
+  if (!user || user.publicMetadata?.role !== "admin") redirect("/no-acceso");
 
   const calificaciones = await prisma.calificacion.findMany({
     where: { isActive: true },
